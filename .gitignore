@@ -1,0 +1,9 @@
+.agents/
+.git.backup-empty/
+**/.git.backup/
+**/node_modules/
+**/dist/
+frontend/.next/
+*.log
+backend/.env
+frontend/.env.local
