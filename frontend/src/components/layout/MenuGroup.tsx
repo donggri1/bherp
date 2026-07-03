@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 
 type MenuGroupProps = {
   group: MenuGroupType;
+  onNavigate?: () => void;
 };
 
-export function MenuGroup({ group }: MenuGroupProps) {
+export function MenuGroup({ group, onNavigate }: MenuGroupProps) {
   const pathname = usePathname();
 
   return (
@@ -25,6 +26,7 @@ export function MenuGroup({ group }: MenuGroupProps) {
             <Link
               key={menu.menuCode}
               href={menu.path}
+              onClick={onNavigate}
               className={cn(
                 "block rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 active

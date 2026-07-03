@@ -1,13 +1,17 @@
 "use client";
 
-import { LogOut, UserRound } from "lucide-react";
+import { LogOut, Menu, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { clearTokens } from "@/lib/auth";
 import { NotificationBell } from "./NotificationBell";
 
-export function AppHeader() {
+type AppHeaderProps = {
+  onMenuClick?: () => void;
+};
+
+export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const router = useRouter();
 
   const handleLogout = () => {
@@ -16,18 +20,29 @@ export function AppHeader() {
   };
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background px-6">
-      <div className="text-base font-semibold">ERP System</div>
-      <div className="flex items-center gap-4 text-sm">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background px-4 md:px-6">
+      <div className="flex min-w-0 items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onMenuClick}
+          className="md:hidden"
+          aria-label="메뉴 열기"
+        >
+          <Menu className="size-5" aria-hidden />
+        </Button>
+        <div className="truncate text-base font-semibold">ERP System</div>
+      </div>
+      <div className="flex items-center gap-2 text-sm md:gap-4">
         <span className="hidden text-muted-foreground sm:inline">BHERP</span>
         <NotificationBell />
-        <span className="inline-flex items-center gap-2 font-medium">
+        <span className="hidden items-center gap-2 font-medium sm:inline-flex">
           <UserRound className="size-4" aria-hidden />
           관리자
         </span>
         <Button variant="outline" size="sm" onClick={handleLogout}>
           <LogOut className="size-4" aria-hidden />
-          로그아웃
+          <span className="hidden sm:inline">로그아웃</span>
         </Button>
       </div>
     </header>
