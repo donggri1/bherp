@@ -1,4 +1,11 @@
-import { IsBoolean, IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateEmployeeCertificateDto {
   @IsInt()
@@ -23,7 +30,20 @@ export class CreateEmployeeCertificateDto {
 
   @IsOptional()
   @IsString()
+  renewedDate?: string;
+
+  @IsOptional()
+  @IsString()
   expiredDate?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  qualificationStatus?: string;
+
+  @IsOptional()
+  @IsNumberString()
+  workHours?: string;
 
   @IsOptional()
   @IsString()

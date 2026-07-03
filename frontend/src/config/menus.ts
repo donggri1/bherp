@@ -1,5 +1,8 @@
 import type { MenuGroup } from "@/types/menu";
 
+const distributionWorkforceEnabled =
+  process.env.NEXT_PUBLIC_FEATURE_DISTRIBUTION_WORKFORCE !== "false";
+
 export const menuGroups: MenuGroup[] = [
   {
     menuGroupCode: "OPERATION",
@@ -50,6 +53,15 @@ export const menuGroups: MenuGroup[] = [
         title: "사원자격증조회",
         path: "/operation/employee-certificate-inquiry",
       },
+      ...(distributionWorkforceEnabled
+        ? [
+            {
+              menuCode: "OP_DISTRIBUTION_WORKFORCE",
+              title: "배전인력",
+              path: "/operation/distribution-workforce",
+            },
+          ]
+        : []),
       {
         menuCode: "OP_PERMISSIONS",
         title: "권한등록",

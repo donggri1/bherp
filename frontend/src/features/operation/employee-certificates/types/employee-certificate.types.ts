@@ -6,7 +6,10 @@ export type EmployeeCertificate = {
   certificateNo?: string;
   issuer?: string;
   acquiredDate?: string;
+  renewedDate?: string;
   expiredDate?: string;
+  qualificationStatus?: string;
+  workHours?: string;
   memo?: string;
   isActive: boolean;
 };
@@ -16,7 +19,10 @@ export type EmployeeCertificateForm = {
   certificateTypeId: string;
   certificateNo: string;
   acquiredDate: string;
+  renewedDate: string;
   expiredDate: string;
+  qualificationStatus: string;
+  workHours: string;
   memo: string;
   isActive: boolean;
 };

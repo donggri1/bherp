@@ -22,7 +22,10 @@ function toPayload(form: EmployeeCertificateForm) {
     certificateTypeId: Number(form.certificateTypeId),
     certificateNo: form.certificateNo || undefined,
     acquiredDate: form.acquiredDate || undefined,
+    renewedDate: form.renewedDate || undefined,
     expiredDate: form.expiredDate || undefined,
+    qualificationStatus: form.qualificationStatus || undefined,
+    workHours: form.workHours || undefined,
     memo: form.memo || undefined,
     isActive: form.isActive,
   };
@@ -33,29 +36,43 @@ export function getEmployeeCertificates(query: EmployeeCertificateQuery = {}) {
   params.set("page", String(query.page ?? 1));
   params.set("limit", String(query.limit ?? 20));
   if (query.employeeId) params.set("employeeId", String(query.employeeId));
-  if (query.certificateTypeId) params.set("certificateTypeId", String(query.certificateTypeId));
-  if (query.isActive !== undefined) params.set("isActive", String(query.isActive));
-  if (query.expiredDateFrom) params.set("expiredDateFrom", query.expiredDateFrom);
+  if (query.certificateTypeId)
+    params.set("certificateTypeId", String(query.certificateTypeId));
+  if (query.isActive !== undefined)
+    params.set("isActive", String(query.isActive));
+  if (query.expiredDateFrom)
+    params.set("expiredDateFrom", query.expiredDateFrom);
   if (query.expiredDateTo) params.set("expiredDateTo", query.expiredDateTo);
 
-  return apiClient<ApiList<EmployeeCertificate>>(`${PATH}?${params.toString()}`, {
-    accessToken: authToken(),
-  });
+  return apiClient<ApiList<EmployeeCertificate>>(
+    `${PATH}?${params.toString()}`,
+    {
+      accessToken: authToken(),
+    },
+  );
 }
 
-export function getEmployeeCertificateInquiries(query: EmployeeCertificateQuery = {}) {
+export function getEmployeeCertificateInquiries(
+  query: EmployeeCertificateQuery = {},
+) {
   const params = new URLSearchParams();
   params.set("page", String(query.page ?? 1));
   params.set("limit", String(query.limit ?? 100));
   if (query.employeeId) params.set("employeeId", String(query.employeeId));
-  if (query.certificateTypeId) params.set("certificateTypeId", String(query.certificateTypeId));
-  if (query.isActive !== undefined) params.set("isActive", String(query.isActive));
-  if (query.expiredDateFrom) params.set("expiredDateFrom", query.expiredDateFrom);
+  if (query.certificateTypeId)
+    params.set("certificateTypeId", String(query.certificateTypeId));
+  if (query.isActive !== undefined)
+    params.set("isActive", String(query.isActive));
+  if (query.expiredDateFrom)
+    params.set("expiredDateFrom", query.expiredDateFrom);
   if (query.expiredDateTo) params.set("expiredDateTo", query.expiredDateTo);
 
-  return apiClient<ApiList<EmployeeCertificate>>(`${INQUIRY_PATH}?${params.toString()}`, {
-    accessToken: authToken(),
-  });
+  return apiClient<ApiList<EmployeeCertificate>>(
+    `${INQUIRY_PATH}?${params.toString()}`,
+    {
+      accessToken: authToken(),
+    },
+  );
 }
 
 export function createEmployeeCertificate(form: EmployeeCertificateForm) {
@@ -66,7 +83,10 @@ export function createEmployeeCertificate(form: EmployeeCertificateForm) {
   });
 }
 
-export function updateEmployeeCertificate(id: number, form: EmployeeCertificateForm) {
+export function updateEmployeeCertificate(
+  id: number,
+  form: EmployeeCertificateForm,
+) {
   return apiClient<EmployeeCertificate>(`${PATH}/${id}`, {
     method: "PATCH",
     accessToken: authToken(),

@@ -38,8 +38,13 @@ function getExpiryStatus(expiredDate?: string) {
   today.setHours(0, 0, 0, 0);
   const diffDays = Math.ceil((date.getTime() - today.getTime()) / 86400000);
 
-  if (diffDays < 0) return { label: "만료", className: "text-destructive font-medium" };
-  if (diffDays <= 30) return { label: `${diffDays}일 남음`, className: "text-amber-600 font-medium" };
+  if (diffDays < 0)
+    return { label: "만료", className: "text-destructive font-medium" };
+  if (diffDays <= 30)
+    return {
+      label: `${diffDays}일 남음`,
+      className: "text-amber-600 font-medium",
+    };
   return { label: "유효", className: "text-emerald-700 font-medium" };
 }
 
@@ -47,7 +52,9 @@ export function EmployeeCertificateInquiryManager() {
   const router = useRouter();
   const [items, setItems] = useState<EmployeeCertificate[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [certificateTypes, setCertificateTypes] = useState<CertificateType[]>([]);
+  const [certificateTypes, setCertificateTypes] = useState<CertificateType[]>(
+    [],
+  );
   const [employeeKeyword, setEmployeeKeyword] = useState("");
   const [certificateTypeId, setCertificateTypeId] = useState("");
   const [expiredDateFrom, setExpiredDateFrom] = useState("");
@@ -74,7 +81,9 @@ export function EmployeeCertificateInquiryManager() {
     return items.filter((item) => {
       const employee = employeeMap.get(item.employeeId);
       if (!employee) return false;
-      return `${employee.employeeCode} ${employee.employeeName}`.toLowerCase().includes(keyword);
+      return `${employee.employeeCode} ${employee.employeeName}`
+        .toLowerCase()
+        .includes(keyword);
     });
   }, [employeeKeyword, employeeMap, items]);
 
@@ -94,7 +103,9 @@ export function EmployeeCertificateInquiryManager() {
       const result = await getEmployeeCertificateInquiries({
         page: 1,
         limit: 100,
-        certificateTypeId: certificateTypeId ? Number(certificateTypeId) : undefined,
+        certificateTypeId: certificateTypeId
+          ? Number(certificateTypeId)
+          : undefined,
         expiredDateFrom: expiredDateFrom || undefined,
         expiredDateTo: expiredDateTo || undefined,
         isActive: isActive ? isActive === "true" : undefined,
@@ -102,8 +113,11 @@ export function EmployeeCertificateInquiryManager() {
       setItems(result.items);
       setTotal(result.total);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "조회에 실패했습니다.");
-      if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
+      setMessage(
+        error instanceof Error ? error.message : "조회에 실패했습니다.",
+      );
+      if (error instanceof Error && error.message.includes("로그인"))
+        router.push("/login");
     } finally {
       setLoading(false);
     }
@@ -111,15 +125,21 @@ export function EmployeeCertificateInquiryManager() {
 
   useEffect(() => {
     void Promise.all([loadRefs(), loadItems()]).catch((error) => {
-      setMessage(error instanceof Error ? error.message : "초기 조회에 실패했습니다.");
-      if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
+      setMessage(
+        error instanceof Error ? error.message : "초기 조회에 실패했습니다.",
+      );
+      if (error instanceof Error && error.message.includes("로그인"))
+        router.push("/login");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
-      <PageHeader title="사원자격증조회" description="자격증 종류와 만료일 기준으로 사원별 자격 보유 현황을 조회합니다." />
+      <PageHeader
+        title="사원자격증조회"
+        description="자격증 종류와 만료일 기준으로 사원별 자격 보유 현황을 조회합니다."
+      />
 
       <Card>
         <CardHeader>
@@ -144,7 +164,9 @@ export function EmployeeCertificateInquiryManager() {
               >
                 <option value="">전체</option>
                 {certificateTypes.map((item) => (
-                  <option key={item.id} value={item.id}>{item.certificateTypeName}</option>
+                  <option key={item.id} value={item.id}>
+                    {item.certificateTypeName}
+                  </option>
                 ))}
               </select>
             </label>
@@ -186,11 +208,17 @@ export function EmployeeCertificateInquiryManager() {
         </CardContent>
       </Card>
 
-      {message ? <div className="rounded-md border bg-background px-4 py-3 text-sm">{message}</div> : null}
+      {message ? (
+        <div className="rounded-md border bg-background px-4 py-3 text-sm">
+          {message}
+        </div>
+      ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>조회결과 {filteredItems.length}건 / 전체 {total}건</CardTitle>
+          <CardTitle>
+            조회결과 {filteredItems.length}건 / 전체 {total}건
+          </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
           <Table>
@@ -202,39 +230,62 @@ export function EmployeeCertificateInquiryManager() {
                 <TableHead>발급기관</TableHead>
                 <TableHead>자격번호</TableHead>
                 <TableHead>취득일</TableHead>
+                <TableHead>갱신일</TableHead>
                 <TableHead>만료일</TableHead>
+                <TableHead>자격상태</TableHead>
+                <TableHead>실적시간</TableHead>
                 <TableHead>만료상태</TableHead>
                 <TableHead>사용여부</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredItems.length ? filteredItems.map((item) => {
-                const employee = employeeMap.get(item.employeeId);
-                const certificateType = certificateTypeMap.get(item.certificateTypeId);
-                const expiryStatus = getExpiryStatus(item.expiredDate);
+              {filteredItems.length ? (
+                filteredItems.map((item) => {
+                  const employee = employeeMap.get(item.employeeId);
+                  const certificateType = certificateTypeMap.get(
+                    item.certificateTypeId,
+                  );
+                  const expiryStatus = getExpiryStatus(item.expiredDate);
 
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="font-medium">{employee?.employeeName ?? "-"}</div>
-                      <div className="text-xs text-muted-foreground">{employee?.employeeCode ?? "-"}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div>{employee?.departmentName ?? "-"}</div>
-                      <div className="text-xs text-muted-foreground">{employee?.positionName ?? "-"}</div>
-                    </TableCell>
-                    <TableCell className="font-medium">{certificateType?.certificateTypeName ?? "-"}</TableCell>
-                    <TableCell>{certificateType?.issuer ?? "-"}</TableCell>
-                    <TableCell>{item.certificateNo ?? "-"}</TableCell>
-                    <TableCell>{item.acquiredDate ?? "-"}</TableCell>
-                    <TableCell>{item.expiredDate ?? "-"}</TableCell>
-                    <TableCell className={cn(expiryStatus.className)}>{expiryStatus.label}</TableCell>
-                    <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
-                  </TableRow>
-                );
-              }) : (
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div className="font-medium">
+                          {employee?.employeeName ?? "-"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {employee?.employeeCode ?? "-"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>{employee?.departmentName ?? "-"}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {employee?.positionName ?? "-"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {certificateType?.certificateTypeName ?? "-"}
+                      </TableCell>
+                      <TableCell>{certificateType?.issuer ?? "-"}</TableCell>
+                      <TableCell>{item.certificateNo ?? "-"}</TableCell>
+                      <TableCell>{item.acquiredDate ?? "-"}</TableCell>
+                      <TableCell>{item.renewedDate ?? "-"}</TableCell>
+                      <TableCell>{item.expiredDate ?? "-"}</TableCell>
+                      <TableCell>{item.qualificationStatus ?? "-"}</TableCell>
+                      <TableCell>{item.workHours ?? "-"}</TableCell>
+                      <TableCell className={cn(expiryStatus.className)}>
+                        {expiryStatus.label}
+                      </TableCell>
+                      <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={12}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     조회된 데이터가 없습니다.
                   </TableCell>
                 </TableRow>

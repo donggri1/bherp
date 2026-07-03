@@ -38,7 +38,10 @@ const emptyForm: EmployeeCertificateForm = {
   certificateTypeId: "",
   certificateNo: "",
   acquiredDate: "",
+  renewedDate: "",
   expiredDate: "",
+  qualificationStatus: "",
+  workHours: "",
   memo: "",
   isActive: true,
 };
@@ -49,7 +52,10 @@ function toForm(item: EmployeeCertificate): EmployeeCertificateForm {
     certificateTypeId: String(item.certificateTypeId),
     certificateNo: item.certificateNo ?? "",
     acquiredDate: item.acquiredDate ?? "",
+    renewedDate: item.renewedDate ?? "",
     expiredDate: item.expiredDate ?? "",
+    qualificationStatus: item.qualificationStatus ?? "",
+    workHours: item.workHours ?? "",
     memo: item.memo ?? "",
     isActive: item.isActive,
   };
@@ -63,8 +69,12 @@ export function EmployeeCertificatesManager() {
   const router = useRouter();
   const [items, setItems] = useState<EmployeeCertificate[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [certificateTypes, setCertificateTypes] = useState<CertificateType[]>([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
+  const [certificateTypes, setCertificateTypes] = useState<CertificateType[]>(
+    [],
+  );
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(
+    null,
+  );
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [form, setForm] = useState<EmployeeCertificateForm>(emptyForm);
   const [employeeKeyword, setEmployeeKeyword] = useState("");
@@ -89,12 +99,16 @@ export function EmployeeCertificatesManager() {
   );
 
   const certificateTypeMap = useMemo(
-    () => new Map(certificateTypes.map((item) => [item.id, item.certificateTypeName])),
+    () =>
+      new Map(
+        certificateTypes.map((item) => [item.id, item.certificateTypeName]),
+      ),
     [certificateTypes],
   );
 
   const certificateTypeIssuerMap = useMemo(
-    () => new Map(certificateTypes.map((item) => [item.id, item.issuer ?? "-"])),
+    () =>
+      new Map(certificateTypes.map((item) => [item.id, item.issuer ?? "-"])),
     [certificateTypes],
   );
 
@@ -108,22 +122,32 @@ export function EmployeeCertificatesManager() {
         isActive: true,
       });
       setEmployees(result.items);
-      if (selectedEmployeeId && !result.items.some((item) => item.id === selectedEmployeeId)) {
+      if (
+        selectedEmployeeId &&
+        !result.items.some((item) => item.id === selectedEmployeeId)
+      ) {
         setSelectedEmployeeId(null);
         setSelectedId(null);
         setItems([]);
         setForm(emptyForm);
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "사원 조회에 실패했습니다.");
-      if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
+      setMessage(
+        error instanceof Error ? error.message : "사원 조회에 실패했습니다.",
+      );
+      if (error instanceof Error && error.message.includes("로그인"))
+        router.push("/login");
     } finally {
       setEmployeeLoading(false);
     }
   };
 
   const loadCertificateTypes = async () => {
-    const result = await getCertificateTypes({ page: 1, limit: 100, isActive: true });
+    const result = await getCertificateTypes({
+      page: 1,
+      limit: 100,
+      isActive: true,
+    });
     setCertificateTypes(result.items);
   };
 
@@ -141,7 +165,9 @@ export function EmployeeCertificatesManager() {
     try {
       const result = await getEmployeeCertificates({
         employeeId,
-        certificateTypeId: certificateTypeFilter ? Number(certificateTypeFilter) : undefined,
+        certificateTypeId: certificateTypeFilter
+          ? Number(certificateTypeFilter)
+          : undefined,
       });
       setItems(result.items);
       if (selectedId && !result.items.some((item) => item.id === selectedId)) {
@@ -149,18 +175,26 @@ export function EmployeeCertificatesManager() {
         setForm({ ...emptyForm, employeeId: String(employeeId) });
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "조회에 실패했습니다.");
-      if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
+      setMessage(
+        error instanceof Error ? error.message : "조회에 실패했습니다.",
+      );
+      if (error instanceof Error && error.message.includes("로그인"))
+        router.push("/login");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    void Promise.all([loadEmployees(""), loadCertificateTypes()]).catch((error) => {
-      setMessage(error instanceof Error ? error.message : "초기 조회에 실패했습니다.");
-      if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
-    });
+    void Promise.all([loadEmployees(""), loadCertificateTypes()]).catch(
+      (error) => {
+        setMessage(
+          error instanceof Error ? error.message : "초기 조회에 실패했습니다.",
+        );
+        if (error instanceof Error && error.message.includes("로그인"))
+          router.push("/login");
+      },
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -185,7 +219,10 @@ export function EmployeeCertificatesManager() {
 
   const handleNew = () => {
     setSelectedId(null);
-    setForm({ ...emptyForm, employeeId: selectedEmployeeId ? String(selectedEmployeeId) : "" });
+    setForm({
+      ...emptyForm,
+      employeeId: selectedEmployeeId ? String(selectedEmployeeId) : "",
+    });
     setMessage(selectedEmployeeId ? "" : "먼저 사원을 선택하세요.");
   };
 
@@ -211,7 +248,9 @@ export function EmployeeCertificatesManager() {
       setMessage("저장되었습니다.");
       await loadItems(selectedEmployeeId);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "저장에 실패했습니다.");
+      setMessage(
+        error instanceof Error ? error.message : "저장에 실패했습니다.",
+      );
     } finally {
       setLoading(false);
     }
@@ -228,11 +267,16 @@ export function EmployeeCertificatesManager() {
     try {
       await deleteEmployeeCertificate(selectedId);
       setSelectedId(null);
-      setForm({ ...emptyForm, employeeId: selectedEmployeeId ? String(selectedEmployeeId) : "" });
+      setForm({
+        ...emptyForm,
+        employeeId: selectedEmployeeId ? String(selectedEmployeeId) : "",
+      });
       setMessage("삭제되었습니다.");
       await loadItems(selectedEmployeeId);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "삭제에 실패했습니다.");
+      setMessage(
+        error instanceof Error ? error.message : "삭제에 실패했습니다.",
+      );
     } finally {
       setLoading(false);
     }
@@ -240,7 +284,10 @@ export function EmployeeCertificatesManager() {
 
   return (
     <>
-      <PageHeader title="사원별자격증등록" description="사원을 선택한 뒤 보유 자격증을 등록하고 관리합니다." />
+      <PageHeader
+        title="사원별자격증등록"
+        description="사원을 선택한 뒤 보유 자격증을 등록하고 관리합니다."
+      />
 
       <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
         <Card>
@@ -277,24 +324,36 @@ export function EmployeeCertificatesManager() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {employees.length ? employees.map((item) => (
-                    <TableRow
-                      key={item.id}
-                      className={cn("cursor-pointer", selectedEmployeeId === item.id && "bg-muted")}
-                      onClick={() => handleEmployeeSelect(item)}
-                    >
-                      <TableCell>
-                        <div className="font-medium">{item.employeeName}</div>
-                        <div className="text-xs text-muted-foreground">{item.employeeCode}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div>{item.departmentName ?? "-"}</div>
-                        <div className="text-xs text-muted-foreground">{item.positionName ?? "-"}</div>
-                      </TableCell>
-                    </TableRow>
-                  )) : (
+                  {employees.length ? (
+                    employees.map((item) => (
+                      <TableRow
+                        key={item.id}
+                        className={cn(
+                          "cursor-pointer",
+                          selectedEmployeeId === item.id && "bg-muted",
+                        )}
+                        onClick={() => handleEmployeeSelect(item)}
+                      >
+                        <TableCell>
+                          <div className="font-medium">{item.employeeName}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {item.employeeCode}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>{item.departmentName ?? "-"}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {item.positionName ?? "-"}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
                     <TableRow>
-                      <TableCell colSpan={2} className="h-24 text-center text-muted-foreground">
+                      <TableCell
+                        colSpan={2}
+                        className="h-24 text-center text-muted-foreground"
+                      >
                         조회된 사원이 없습니다.
                       </TableCell>
                     </TableRow>
@@ -315,7 +374,9 @@ export function EmployeeCertificatesManager() {
                 <div className="rounded-md border bg-muted/30 px-4 py-3 text-sm">
                   <div className="text-muted-foreground">선택 사원</div>
                   <div className="mt-1 font-medium">
-                    {selectedEmployee ? employeeLabel(selectedEmployee) : "사원을 선택하세요."}
+                    {selectedEmployee
+                      ? employeeLabel(selectedEmployee)
+                      : "사원을 선택하세요."}
                   </div>
                 </div>
                 <label className="space-y-2 text-sm font-medium">
@@ -323,11 +384,15 @@ export function EmployeeCertificatesManager() {
                   <select
                     className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
                     value={certificateTypeFilter}
-                    onChange={(event) => setCertificateTypeFilter(event.target.value)}
+                    onChange={(event) =>
+                      setCertificateTypeFilter(event.target.value)
+                    }
                   >
                     <option value="">전체</option>
                     {certificateTypes.map((item) => (
-                      <option key={item.id} value={item.id}>{item.certificateTypeName}</option>
+                      <option key={item.id} value={item.id}>
+                        {item.certificateTypeName}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -346,7 +411,11 @@ export function EmployeeCertificatesManager() {
             deleteDisabled={loading || !selectedId}
           />
 
-          {message ? <div className="rounded-md border bg-background px-4 py-3 text-sm">{message}</div> : null}
+          {message ? (
+            <div className="rounded-md border bg-background px-4 py-3 text-sm">
+              {message}
+            </div>
+          ) : null}
 
           <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_420px]">
             <Card>
@@ -361,30 +430,55 @@ export function EmployeeCertificatesManager() {
                       <TableHead>자격번호</TableHead>
                       <TableHead>발급기관</TableHead>
                       <TableHead>취득일</TableHead>
+                      <TableHead>갱신일</TableHead>
                       <TableHead>만료일</TableHead>
+                      <TableHead>자격상태</TableHead>
+                      <TableHead>실적시간</TableHead>
                       <TableHead>사용여부</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {items.length ? items.map((item) => (
-                      <TableRow
-                        key={item.id}
-                        className={cn("cursor-pointer", selectedId === item.id && "bg-muted")}
-                        onClick={() => handleSelect(item)}
-                      >
-                        <TableCell className="font-medium">
-                          {certificateTypeMap.get(item.certificateTypeId) ?? "-"}
-                        </TableCell>
-                        <TableCell>{item.certificateNo ?? "-"}</TableCell>
-                        <TableCell>{certificateTypeIssuerMap.get(item.certificateTypeId) ?? "-"}</TableCell>
-                        <TableCell>{item.acquiredDate ?? "-"}</TableCell>
-                        <TableCell>{item.expiredDate ?? "-"}</TableCell>
-                        <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
-                      </TableRow>
-                    )) : (
+                    {items.length ? (
+                      items.map((item) => (
+                        <TableRow
+                          key={item.id}
+                          className={cn(
+                            "cursor-pointer",
+                            selectedId === item.id && "bg-muted",
+                          )}
+                          onClick={() => handleSelect(item)}
+                        >
+                          <TableCell className="font-medium">
+                            {certificateTypeMap.get(item.certificateTypeId) ??
+                              "-"}
+                          </TableCell>
+                          <TableCell>{item.certificateNo ?? "-"}</TableCell>
+                          <TableCell>
+                            {certificateTypeIssuerMap.get(
+                              item.certificateTypeId,
+                            ) ?? "-"}
+                          </TableCell>
+                          <TableCell>{item.acquiredDate ?? "-"}</TableCell>
+                          <TableCell>{item.renewedDate ?? "-"}</TableCell>
+                          <TableCell>{item.expiredDate ?? "-"}</TableCell>
+                          <TableCell>
+                            {item.qualificationStatus ?? "-"}
+                          </TableCell>
+                          <TableCell>{item.workHours ?? "-"}</TableCell>
+                          <TableCell>
+                            {item.isActive ? "사용" : "미사용"}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                          {selectedEmployeeId ? "조회된 데이터가 없습니다." : "사원을 선택하세요."}
+                        <TableCell
+                          colSpan={9}
+                          className="h-24 text-center text-muted-foreground"
+                        >
+                          {selectedEmployeeId
+                            ? "조회된 데이터가 없습니다."
+                            : "사원을 선택하세요."}
                         </TableCell>
                       </TableRow>
                     )}
@@ -399,19 +493,25 @@ export function EmployeeCertificatesManager() {
               </CardHeader>
               <CardContent className="grid gap-4">
                 <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
-                  {selectedEmployee ? employeeLabel(selectedEmployee) : "사원 미선택"}
+                  {selectedEmployee
+                    ? employeeLabel(selectedEmployee)
+                    : "사원 미선택"}
                 </div>
                 <label className="space-y-2 text-sm font-medium">
                   자격증 종류
                   <select
                     className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
                     value={form.certificateTypeId}
-                    onChange={(event) => handleChange("certificateTypeId", event.target.value)}
+                    onChange={(event) =>
+                      handleChange("certificateTypeId", event.target.value)
+                    }
                     disabled={!selectedEmployeeId}
                   >
                     <option value="">선택</option>
                     {certificateTypes.map((item) => (
-                      <option key={item.id} value={item.id}>{item.certificateTypeName}</option>
+                      <option key={item.id} value={item.id}>
+                        {item.certificateTypeName}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -419,7 +519,9 @@ export function EmployeeCertificatesManager() {
                   자격번호
                   <Input
                     value={form.certificateNo}
-                    onChange={(event) => handleChange("certificateNo", event.target.value)}
+                    onChange={(event) =>
+                      handleChange("certificateNo", event.target.value)
+                    }
                     disabled={!selectedEmployeeId}
                   />
                 </label>
@@ -429,7 +531,20 @@ export function EmployeeCertificatesManager() {
                     <Input
                       type="date"
                       value={form.acquiredDate}
-                      onChange={(event) => handleChange("acquiredDate", event.target.value)}
+                      onChange={(event) =>
+                        handleChange("acquiredDate", event.target.value)
+                      }
+                      disabled={!selectedEmployeeId}
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm font-medium">
+                    갱신일
+                    <Input
+                      type="date"
+                      value={form.renewedDate}
+                      onChange={(event) =>
+                        handleChange("renewedDate", event.target.value)
+                      }
                       disabled={!selectedEmployeeId}
                     />
                   </label>
@@ -438,16 +553,43 @@ export function EmployeeCertificatesManager() {
                     <Input
                       type="date"
                       value={form.expiredDate}
-                      onChange={(event) => handleChange("expiredDate", event.target.value)}
+                      onChange={(event) =>
+                        handleChange("expiredDate", event.target.value)
+                      }
+                      disabled={!selectedEmployeeId}
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm font-medium">
+                    실적시간
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={form.workHours}
+                      onChange={(event) =>
+                        handleChange("workHours", event.target.value)
+                      }
                       disabled={!selectedEmployeeId}
                     />
                   </label>
                 </div>
                 <label className="space-y-2 text-sm font-medium">
+                  자격상태
+                  <Input
+                    value={form.qualificationStatus}
+                    onChange={(event) =>
+                      handleChange("qualificationStatus", event.target.value)
+                    }
+                    disabled={!selectedEmployeeId}
+                  />
+                </label>
+                <label className="space-y-2 text-sm font-medium">
                   메모
                   <Input
                     value={form.memo}
-                    onChange={(event) => handleChange("memo", event.target.value)}
+                    onChange={(event) =>
+                      handleChange("memo", event.target.value)
+                    }
                     disabled={!selectedEmployeeId}
                   />
                 </label>
@@ -455,7 +597,9 @@ export function EmployeeCertificatesManager() {
                   <input
                     type="checkbox"
                     checked={form.isActive}
-                    onChange={(event) => handleChange("isActive", event.target.checked)}
+                    onChange={(event) =>
+                      handleChange("isActive", event.target.checked)
+                    }
                     disabled={!selectedEmployeeId}
                   />
                   사용

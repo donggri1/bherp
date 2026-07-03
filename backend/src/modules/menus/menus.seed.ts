@@ -1,5 +1,7 @@
 import { Menu } from './entities/menu.entity';
 
+const distributionWorkforceEnabled = process.env.FEATURE_DISTRIBUTION_WORKFORCE !== 'false';
+
 export const initialMenus: Partial<Menu>[] = [
   {
     menuCode: 'OP_BUSINESS_REGISTRATION',
@@ -64,18 +66,29 @@ export const initialMenus: Partial<Menu>[] = [
     path: '/operation/employee-certificate-inquiry',
     sortOrder: 9,
   },
+  ...(distributionWorkforceEnabled
+    ? [
+        {
+          menuCode: 'OP_DISTRIBUTION_WORKFORCE',
+          menuName: '배전인력',
+          menuGroupCode: 'OPERATION',
+          path: '/operation/distribution-workforce',
+          sortOrder: 10,
+        },
+      ]
+    : []),
   {
     menuCode: 'OP_PERMISSIONS',
     menuName: '권한등록',
     menuGroupCode: 'OPERATION',
     path: '/operation/permissions',
-    sortOrder: 10,
+    sortOrder: 11,
   },
   {
     menuCode: 'OP_ADMIN_SETTINGS',
     menuName: '환경설정',
     menuGroupCode: 'OPERATION',
     path: '/operation/admin-settings',
-    sortOrder: 11,
+    sortOrder: 12,
   },
 ];
