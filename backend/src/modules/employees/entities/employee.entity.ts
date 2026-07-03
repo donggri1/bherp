@@ -10,35 +10,35 @@ export class Employee extends CompanyBaseEntity {
   @Column({ length: 100 })
   employeeName: string;
 
-  @Column({ nullable: true })
-  userId?: number;
+  @Column({ type: 'int', nullable: true })
+  userId?: number | null;
 
-  @Column({ nullable: true })
-  businessUnitId?: number;
+  @Column({ type: 'int', nullable: true })
+  businessUnitId?: number | null;
 
-  @Column({ length: 100, nullable: true })
-  departmentName?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  departmentName?: string | null;
 
-  @Column({ length: 100, nullable: true })
-  positionName?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  positionName?: string | null;
 
-  @Column({ length: 120, nullable: true })
-  email?: string;
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  email?: string | null;
 
-  @Column({ length: 30, nullable: true })
-  phone?: string;
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  phone?: string | null;
 
-  @Column({ length: 255, nullable: true })
-  address?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  address?: string | null;
 
-  @Column({ length: 20, nullable: true })
-  residentRegistrationNumber?: string;
-
-  @Column({ type: 'date', nullable: true })
-  hireDate?: string;
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  residentRegistrationNumber?: string | null;
 
   @Column({ type: 'date', nullable: true })
-  resignDate?: string;
+  hireDate?: string | null;
+
+  @Column({ type: 'date', nullable: true })
+  resignDate?: string | null;
 
   @Column({ default: true })
   isActive: boolean;

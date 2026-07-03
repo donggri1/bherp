@@ -12,49 +12,49 @@ export class CreateEmployeeDto {
 
   @IsOptional()
   @IsInt()
-  userId?: number;
+  userId?: number | null;
 
   @IsOptional()
   @IsInt()
-  businessUnitId?: number;
+  businessUnitId?: number | null;
 
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  departmentName?: string;
+  departmentName?: string | null;
 
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  positionName?: string;
+  positionName?: string | null;
 
   @IsOptional()
   @IsEmail()
   @MaxLength(120)
-  email?: string;
+  email?: string | null;
 
   @IsOptional()
   @IsString()
   @MaxLength(30)
-  phone?: string;
+  phone?: string | null;
 
   @IsOptional()
   @IsString()
   @MaxLength(255)
-  address?: string;
+  address?: string | null;
 
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  residentRegistrationNumber?: string;
+  residentRegistrationNumber?: string | null;
 
   @IsOptional()
   @IsString()
-  hireDate?: string;
+  hireDate?: string | null;
 
   @IsOptional()
   @IsString()
-  resignDate?: string;
+  resignDate?: string | null;
 
   @IsOptional()
   @IsBoolean()

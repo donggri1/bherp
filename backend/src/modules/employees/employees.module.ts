@@ -7,6 +7,7 @@ import { UserRole } from '../roles/entities/user-role.entity';
 import { SequencesModule } from '../sequences/sequences.module';
 import { Employee } from './entities/employee.entity';
 import { EmployeesController } from './employees.controller';
+import { EmployeesSchemaService } from './employees-schema.service';
 import { EmployeesService } from './employees.service';
 
 @Module({
@@ -15,6 +16,6 @@ import { EmployeesService } from './employees.service';
     SequencesModule,
   ],
   controllers: [EmployeesController],
-  providers: [EmployeesService, MenuPermissionGuard],
+  providers: [EmployeesService, EmployeesSchemaService, MenuPermissionGuard],
 })
 export class EmployeesModule {}

@@ -3,16 +3,16 @@ export type Employee = {
   companyId: number;
   employeeCode: string;
   employeeName: string;
-  userId?: number;
-  businessUnitId?: number;
-  departmentName?: string;
-  positionName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  residentRegistrationNumber?: string;
-  hireDate?: string;
-  resignDate?: string;
+  userId?: number | null;
+  businessUnitId?: number | null;
+  departmentName?: string | null;
+  positionName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  residentRegistrationNumber?: string | null;
+  hireDate?: string | null;
+  resignDate?: string | null;
   isActive: boolean;
 };
 
