@@ -28,6 +28,12 @@ export class Employee extends CompanyBaseEntity {
   @Column({ length: 30, nullable: true })
   phone?: string;
 
+  @Column({ length: 255, nullable: true })
+  address?: string;
+
+  @Column({ length: 20, nullable: true })
+  residentRegistrationNumber?: string;
+
   @Column({ type: 'date', nullable: true })
   hireDate?: string;
 

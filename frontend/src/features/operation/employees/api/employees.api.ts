@@ -21,6 +21,8 @@ function toPayload(form: EmployeeForm) {
     positionName: form.positionName || undefined,
     email: form.email || undefined,
     phone: form.phone || undefined,
+    address: form.address || undefined,
+    residentRegistrationNumber: form.residentRegistrationNumber || undefined,
     hireDate: form.hireDate || undefined,
     resignDate: form.resignDate || undefined,
     isActive: form.isActive,

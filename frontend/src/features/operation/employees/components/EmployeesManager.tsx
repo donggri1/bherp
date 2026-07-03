@@ -36,6 +36,8 @@ const emptyForm: EmployeeForm = {
   positionName: "",
   email: "",
   phone: "",
+  address: "",
+  residentRegistrationNumber: "",
   hireDate: "",
   resignDate: "",
   isActive: true,
@@ -51,6 +53,8 @@ function toForm(item: Employee): EmployeeForm {
     positionName: item.positionName ?? "",
     email: item.email ?? "",
     phone: item.phone ?? "",
+    address: item.address ?? "",
+    residentRegistrationNumber: item.residentRegistrationNumber ?? "",
     hireDate: item.hireDate ?? "",
     resignDate: item.resignDate ?? "",
     isActive: item.isActive,
@@ -249,6 +253,7 @@ export function EmployeesManager() {
                   <TableHead>사업단위</TableHead>
                   <TableHead>부서</TableHead>
                   <TableHead>직위</TableHead>
+                  <TableHead>휴대폰</TableHead>
                   <TableHead>입사일</TableHead>
                   <TableHead>사용여부</TableHead>
                 </TableRow>
@@ -266,13 +271,14 @@ export function EmployeesManager() {
                       <TableCell>{item.businessUnitId ? businessUnitMap.get(item.businessUnitId) ?? "-" : "-"}</TableCell>
                       <TableCell>{item.departmentName ?? "-"}</TableCell>
                       <TableCell>{item.positionName ?? "-"}</TableCell>
+                      <TableCell>{item.phone ?? "-"}</TableCell>
                       <TableCell>{item.hireDate ?? "-"}</TableCell>
                       <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                       조회된 데이터가 없습니다.
                     </TableCell>
                   </TableRow>
@@ -364,6 +370,18 @@ export function EmployeesManager() {
             <label className="space-y-2 text-sm font-medium">
               휴대폰
               <Input value={form.phone} onChange={(event) => handleChange("phone", event.target.value)} />
+            </label>
+            <label className="space-y-2 text-sm font-medium">
+              주소
+              <Input value={form.address} onChange={(event) => handleChange("address", event.target.value)} />
+            </label>
+            <label className="space-y-2 text-sm font-medium">
+              주민등록번호
+              <Input
+                value={form.residentRegistrationNumber}
+                onChange={(event) => handleChange("residentRegistrationNumber", event.target.value)}
+                placeholder="예: 900101-1234567"
+              />
             </label>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="space-y-2 text-sm font-medium">

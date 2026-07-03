@@ -9,6 +9,8 @@ export type Employee = {
   positionName?: string;
   email?: string;
   phone?: string;
+  address?: string;
+  residentRegistrationNumber?: string;
   hireDate?: string;
   resignDate?: string;
   isActive: boolean;
@@ -23,6 +25,8 @@ export type EmployeeForm = {
   positionName: string;
   email: string;
   phone: string;
+  address: string;
+  residentRegistrationNumber: string;
   hireDate: string;
   resignDate: string;
   isActive: boolean;

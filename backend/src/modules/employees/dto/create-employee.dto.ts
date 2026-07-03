@@ -40,6 +40,16 @@ export class CreateEmployeeDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(255)
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  residentRegistrationNumber?: string;
+
+  @IsOptional()
+  @IsString()
   hireDate?: string;
 
   @IsOptional()
