@@ -6,6 +6,8 @@ import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { menuGroups } from "@/config/menus";
+import { MdiTabBar } from "@/features/mdi-tabs/components/MdiTabBar";
+import { MdiWorkspace } from "@/features/mdi-tabs/components/MdiWorkspace";
 import { AppHeader } from "./AppHeader";
 import { AppSidebar } from "./AppSidebar";
 import { MenuGroup } from "./MenuGroup";
@@ -22,8 +24,9 @@ export function AppShell({ children }: AppShellProps) {
       <AppHeader onMenuClick={() => setMobileMenuOpen(true)} />
       <div className="flex flex-1 overflow-hidden">
         <AppSidebar />
-        <main className="min-w-0 flex-1 overflow-auto bg-muted/10 p-5 md:p-6">
-          <div className="mx-auto w-full max-w-7xl space-y-5">{children}</div>
+        <main className="flex min-w-0 flex-1 flex-col overflow-hidden bg-muted/10">
+          <MdiTabBar />
+          <MdiWorkspace>{children}</MdiWorkspace>
         </main>
       </div>
       {mobileMenuOpen ? (

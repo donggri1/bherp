@@ -1,9 +1,12 @@
 "use client";
 
+import type { MouseEvent } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import type { MenuGroup as MenuGroupType } from "@/types/menu";
+import type { MenuItem } from "@/types/menu";
+import { useMdiTabs } from "@/features/mdi-tabs/hooks/useMdiTabs";
 import { cn } from "@/lib/utils";
 
 type MenuGroupProps = {
@@ -13,6 +16,27 @@ type MenuGroupProps = {
 
 export function MenuGroup({ group, onNavigate }: MenuGroupProps) {
   const pathname = usePathname();
+  const { openTab } = useMdiTabs();
+
+  const handleMenuClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    menu: MenuItem,
+  ) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    openTab(menu);
+    onNavigate?.();
+  };
 
   return (
     <section className="space-y-2">
@@ -26,7 +50,7 @@ export function MenuGroup({ group, onNavigate }: MenuGroupProps) {
             <Link
               key={menu.menuCode}
               href={menu.path}
-              onClick={onNavigate}
+              onClick={(event) => handleMenuClick(event, menu)}
               className={cn(
                 "block rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 active

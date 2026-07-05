@@ -4,6 +4,7 @@ import { LogOut, Menu, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { HeaderMenuSearch } from "@/features/menu-search/components/HeaderMenuSearch";
 import { clearTokens } from "@/lib/auth";
 import { NotificationBell } from "./NotificationBell";
 
@@ -20,8 +21,8 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
   };
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background px-4 md:px-6">
-      <div className="flex min-w-0 items-center gap-2">
+    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b bg-background px-4 md:px-6">
+      <div className="flex min-w-0 items-center gap-2 justify-self-start">
         <Button
           variant="ghost"
           size="icon"
@@ -33,7 +34,8 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
         </Button>
         <div className="truncate text-base font-semibold">ERP System</div>
       </div>
-      <div className="flex items-center gap-2 text-sm md:gap-4">
+      <div className="flex min-w-0 items-center gap-2 text-sm md:gap-3">
+        <HeaderMenuSearch className="min-w-0 justify-end" />
         <span className="hidden text-muted-foreground sm:inline">BHERP</span>
         <NotificationBell />
         <span className="hidden items-center gap-2 font-medium sm:inline-flex">

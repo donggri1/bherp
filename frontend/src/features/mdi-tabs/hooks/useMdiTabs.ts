@@ -1,0 +1,1 @@
+export { useMdiTabs } from "../MdiTabsProvider";
