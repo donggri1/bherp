@@ -32,6 +32,7 @@ export type EmployeeCertificateQuery = {
   limit?: number;
   employeeId?: number;
   certificateTypeId?: number;
+  certificateTypeIds?: number[];
   isActive?: boolean;
   expiredDateFrom?: string;
   expiredDateTo?: string;

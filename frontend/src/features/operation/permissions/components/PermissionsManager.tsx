@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { ActionButtons } from "@/components/common/ActionButtons";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import {
+  copyRole,
   createRole,
   deleteRole,
   getRoleMenuPermissions,
@@ -126,6 +128,33 @@ export function PermissionsManager() {
     );
   };
 
+  const handlePermissionRowToggle = (menuId: number, checked: boolean) => {
+    setPermissionRows((current) =>
+      current.map((row) =>
+        row.permission.menuId === menuId
+          ? {
+              ...row,
+              permission: {
+                ...row.permission,
+                canRead: checked,
+                canCreate: checked,
+                canUpdate: checked,
+                canDelete: checked,
+                canExcel: checked,
+              },
+            }
+          : row,
+      ),
+    );
+  };
+
+  const isPermissionRowAllChecked = (row: RoleMenuPermissionRow) =>
+    row.permission.canRead &&
+    row.permission.canCreate &&
+    row.permission.canUpdate &&
+    row.permission.canDelete &&
+    row.permission.canExcel;
+
   const handleSave = async () => {
     if (!form.roleCode.trim() || !form.roleName.trim()) {
       setMessage("역할코드와 역할명은 필수입니다.");
@@ -174,6 +203,27 @@ export function PermissionsManager() {
       setMessage("권한이 저장되었습니다.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "권한 저장에 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyRole = async () => {
+    if (!selectedRoleId || !selectedRole) {
+      setMessage("복사할 역할을 선택하세요.");
+      return;
+    }
+    setLoading(true);
+    setMessage("");
+    try {
+      const copied = await copyRole(selectedRoleId);
+      await loadRoles();
+      setSelectedRoleId(copied.id);
+      setForm(toForm(copied));
+      await loadPermissions(copied.id);
+      setMessage(`${selectedRole.roleName} 역할을 복사했습니다.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "역할 복사에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -258,7 +308,18 @@ export function PermissionsManager() {
 
           <Card>
             <CardHeader>
-              <CardTitle>역할 상세</CardTitle>
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle>역할 상세</CardTitle>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyRole}
+                  disabled={loading || !selectedRoleId}
+                >
+                  복사하기
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="grid gap-4">
               <label className="space-y-2 text-sm font-medium">
@@ -303,6 +364,7 @@ export function PermissionsManager() {
                 <TableRow>
                   <TableHead>메뉴그룹</TableHead>
                   <TableHead>메뉴</TableHead>
+                  <TableHead>전체</TableHead>
                   <TableHead>조회</TableHead>
                   <TableHead>등록</TableHead>
                   <TableHead>수정</TableHead>
@@ -316,6 +378,16 @@ export function PermissionsManager() {
                     <TableRow key={row.menu.id}>
                       <TableCell>{row.menu.menuGroupCode}</TableCell>
                       <TableCell className="font-medium">{row.menu.menuName}</TableCell>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={isPermissionRowAllChecked(row)}
+                          onChange={(event) =>
+                            handlePermissionRowToggle(row.permission.menuId, event.target.checked)
+                          }
+                          aria-label={`${row.menu.menuName} 권한 전체 선택`}
+                        />
+                      </TableCell>
                       {(["canRead", "canCreate", "canUpdate", "canDelete", "canExcel"] as const).map((key) => (
                         <TableCell key={key}>
                           <input
@@ -331,7 +403,7 @@ export function PermissionsManager() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                       역할을 선택하세요.
                     </TableCell>
                   </TableRow>

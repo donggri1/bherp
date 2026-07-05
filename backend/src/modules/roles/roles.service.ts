@@ -40,6 +40,40 @@ export class RolesService {
     return this.roleRepository.save(this.roleRepository.create({ ...dto, companyId }));
   }
 
+  async copy(companyId: number, id: number) {
+    const source = await this.findOne(companyId, id);
+    const copiedRole = await this.roleRepository.save(
+      this.roleRepository.create({
+        companyId,
+        roleCode: await this.nextCopyRoleCode(companyId, source.roleCode),
+        roleName: await this.nextCopyRoleName(companyId, source.roleName),
+        description: source.description,
+        isSystem: false,
+        isActive: source.isActive,
+      }),
+    );
+    const permissions = await this.permissionRepository.find({
+      where: { companyId, roleId: source.id },
+    });
+    if (permissions.length) {
+      await this.permissionRepository.save(
+        permissions.map((permission) =>
+          this.permissionRepository.create({
+            companyId,
+            roleId: copiedRole.id,
+            menuId: permission.menuId,
+            canRead: permission.canRead,
+            canCreate: permission.canCreate,
+            canUpdate: permission.canUpdate,
+            canDelete: permission.canDelete,
+            canExcel: permission.canExcel,
+          }),
+        ),
+      );
+    }
+    return copiedRole;
+  }
+
   async update(companyId: number, id: number, dto: UpdateRoleDto) {
     await this.roleRepository.update({ id, companyId }, dto);
     return this.findOne(companyId, id);
@@ -115,5 +149,29 @@ export class RolesService {
     }
 
     return this.findMenuPermissions(companyId, roleId);
+  }
+
+  private async nextCopyRoleCode(companyId: number, roleCode: string) {
+    for (let index = 1; index <= 999; index += 1) {
+      const suffix = index === 1 ? 'COPY' : `COPY${index}`;
+      const nextCode = `${roleCode}_${suffix}`.slice(0, 50);
+      const existing = await this.roleRepository.findOne({
+        where: { companyId, roleCode: nextCode },
+      });
+      if (!existing) return nextCode;
+    }
+    return `${roleCode}_${Date.now()}`.slice(0, 50);
+  }
+
+  private async nextCopyRoleName(companyId: number, roleName: string) {
+    for (let index = 1; index <= 999; index += 1) {
+      const suffix = index === 1 ? '복사본' : `복사본 ${index}`;
+      const nextName = `${roleName} ${suffix}`.slice(0, 100);
+      const existing = await this.roleRepository.findOne({
+        where: { companyId, roleName: nextName },
+      });
+      if (!existing) return nextName;
+    }
+    return `${roleName} ${Date.now()}`.slice(0, 100);
   }
 }

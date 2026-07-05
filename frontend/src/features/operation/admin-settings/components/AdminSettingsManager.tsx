@@ -17,6 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getRoles } from "@/features/operation/permissions/api/permissions.api";
+import type { Role } from "@/features/operation/permissions/types/permission.types";
 import { getAdminSettings, updateAdminSettings } from "../api/admin-settings.api";
 import type { CertificateExpiryAlertRule } from "../types/admin-settings.types";
 
@@ -25,6 +27,8 @@ const emptyRule: CertificateExpiryAlertRule = { amount: 1, unit: "day" };
 export function AdminSettingsManager() {
   const router = useRouter();
   const [rules, setRules] = useState<CertificateExpiryAlertRule[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [alertRoleIds, setAlertRoleIds] = useState<number[]>([]);
   const [settingType, setSettingType] = useState("certificate-expiry");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -33,8 +37,13 @@ export function AdminSettingsManager() {
     setLoading(true);
     setMessage("");
     try {
-      const result = await getAdminSettings();
-      setRules(result.certificateExpiryAlertRules);
+      const [settings, roleResult] = await Promise.all([
+        getAdminSettings(),
+        getRoles(),
+      ]);
+      setRules(settings.certificateExpiryAlertRules);
+      setAlertRoleIds(settings.certificateExpiryAlertRoleIds ?? []);
+      setRoles(roleResult.items);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "조회에 실패했습니다.");
       if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
@@ -69,6 +78,14 @@ export function AdminSettingsManager() {
     setRules((current) => current.filter((_, ruleIndex) => ruleIndex !== index));
   };
 
+  const handleAlertRoleToggle = (roleId: number) => {
+    setAlertRoleIds((current) =>
+      current.includes(roleId)
+        ? current.filter((id) => id !== roleId)
+        : [...current, roleId],
+    );
+  };
+
   const handleSave = async () => {
     const normalizedRules = rules
       .map((rule) => ({ amount: Number(rule.amount), unit: rule.unit }))
@@ -82,8 +99,9 @@ export function AdminSettingsManager() {
     setLoading(true);
     setMessage("");
     try {
-      const result = await updateAdminSettings(normalizedRules);
+      const result = await updateAdminSettings(normalizedRules, alertRoleIds);
       setRules(result.certificateExpiryAlertRules);
+      setAlertRoleIds(result.certificateExpiryAlertRoleIds ?? []);
       setMessage("저장되었습니다.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "저장에 실패했습니다.");
@@ -191,6 +209,51 @@ export function AdminSettingsManager() {
               )}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>자격증 만료 알람 수신 역할</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3">
+          <label className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium">
+            <input
+              type="checkbox"
+              checked={!alertRoleIds.length}
+              onChange={() => setAlertRoleIds([])}
+              disabled={loading}
+            />
+            전체 역할
+          </label>
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {roles.length ? (
+              roles.map((role) => (
+                <label
+                  key={role.id}
+                  className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm"
+                >
+                  <span>
+                    <span className="block font-medium">{role.roleName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {role.roleCode}
+                    </span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={alertRoleIds.includes(role.id)}
+                    onChange={() => handleAlertRoleToggle(role.id)}
+                    disabled={loading}
+                    aria-label={`${role.roleName} 알람 수신`}
+                  />
+                </label>
+              ))
+            ) : (
+              <div className="rounded-md border px-4 py-6 text-center text-sm text-muted-foreground md:col-span-2 xl:col-span-3">
+                등록된 역할이 없습니다.
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </>

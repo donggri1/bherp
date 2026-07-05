@@ -1,5 +1,11 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsDateString, IsInt, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsInt,
+  IsOptional,
+} from 'class-validator';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
 export class EmployeeCertificateQueryDto extends PaginationDto {
@@ -12,6 +18,16 @@ export class EmployeeCertificateQueryDto extends PaginationDto {
   @Type(() => Number)
   @IsInt()
   certificateTypeId?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    const values = Array.isArray(value) ? value : String(value).split(',');
+    return values.map((item) => Number(item)).filter(Number.isFinite);
+  })
+  @IsArray()
+  @IsInt({ each: true })
+  certificateTypeIds?: number[];
 
   @IsOptional()
   @Transform(({ value }) => {

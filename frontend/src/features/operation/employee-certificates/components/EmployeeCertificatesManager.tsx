@@ -417,24 +417,42 @@ export function EmployeeCertificatesManager() {
             </div>
           ) : null}
 
-          <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_420px]">
-            <Card>
+          <div className="grid gap-5">
+            <Card className="min-w-0">
               <CardHeader>
                 <CardTitle>보유 자격증</CardTitle>
               </CardHeader>
-              <CardContent className="overflow-x-auto p-0">
-                <Table>
+              <CardContent className="max-h-[460px] overflow-auto p-0">
+                <Table className="min-w-[1120px]">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>자격증</TableHead>
-                      <TableHead>자격번호</TableHead>
-                      <TableHead>발급기관</TableHead>
-                      <TableHead>취득일</TableHead>
-                      <TableHead>갱신일</TableHead>
-                      <TableHead>만료일</TableHead>
-                      <TableHead>자격상태</TableHead>
-                      <TableHead>실적시간</TableHead>
-                      <TableHead>사용여부</TableHead>
+                      <TableHead className="min-w-[140px] whitespace-nowrap">
+                        자격증
+                      </TableHead>
+                      <TableHead className="min-w-[150px] whitespace-nowrap">
+                        자격번호
+                      </TableHead>
+                      <TableHead className="min-w-[140px] whitespace-nowrap">
+                        발급기관
+                      </TableHead>
+                      <TableHead className="w-[110px] whitespace-nowrap">
+                        취득일
+                      </TableHead>
+                      <TableHead className="w-[110px] whitespace-nowrap">
+                        갱신일
+                      </TableHead>
+                      <TableHead className="w-[110px] whitespace-nowrap">
+                        만료일
+                      </TableHead>
+                      <TableHead className="w-[100px] whitespace-nowrap">
+                        자격상태
+                      </TableHead>
+                      <TableHead className="w-[100px] whitespace-nowrap text-right">
+                        실적시간
+                      </TableHead>
+                      <TableHead className="w-[90px] whitespace-nowrap">
+                        사용여부
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -448,24 +466,34 @@ export function EmployeeCertificatesManager() {
                           )}
                           onClick={() => handleSelect(item)}
                         >
-                          <TableCell className="font-medium">
+                          <TableCell className="whitespace-nowrap font-medium">
                             {certificateTypeMap.get(item.certificateTypeId) ??
                               "-"}
                           </TableCell>
-                          <TableCell>{item.certificateNo ?? "-"}</TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {item.certificateNo ?? "-"}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
                             {certificateTypeIssuerMap.get(
                               item.certificateTypeId,
                             ) ?? "-"}
                           </TableCell>
-                          <TableCell>{item.acquiredDate ?? "-"}</TableCell>
-                          <TableCell>{item.renewedDate ?? "-"}</TableCell>
-                          <TableCell>{item.expiredDate ?? "-"}</TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {item.acquiredDate ?? "-"}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {item.renewedDate ?? "-"}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {item.expiredDate ?? "-"}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
                             {item.qualificationStatus ?? "-"}
                           </TableCell>
-                          <TableCell>{item.workHours ?? "-"}</TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-nowrap text-right tabular-nums">
+                            {item.workHours ?? "-"}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
                             {item.isActive ? "사용" : "미사용"}
                           </TableCell>
                         </TableRow>
@@ -491,8 +519,8 @@ export function EmployeeCertificatesManager() {
               <CardHeader>
                 <CardTitle>상세</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+              <CardContent className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+                <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm lg:col-span-2 2xl:col-span-3">
                   {selectedEmployee
                     ? employeeLabel(selectedEmployee)
                     : "사원 미선택"}
@@ -525,54 +553,52 @@ export function EmployeeCertificatesManager() {
                     disabled={!selectedEmployeeId}
                   />
                 </label>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="space-y-2 text-sm font-medium">
-                    취득일
-                    <Input
-                      type="date"
-                      value={form.acquiredDate}
-                      onChange={(event) =>
-                        handleChange("acquiredDate", event.target.value)
-                      }
-                      disabled={!selectedEmployeeId}
-                    />
-                  </label>
-                  <label className="space-y-2 text-sm font-medium">
-                    갱신일
-                    <Input
-                      type="date"
-                      value={form.renewedDate}
-                      onChange={(event) =>
-                        handleChange("renewedDate", event.target.value)
-                      }
-                      disabled={!selectedEmployeeId}
-                    />
-                  </label>
-                  <label className="space-y-2 text-sm font-medium">
-                    만료일
-                    <Input
-                      type="date"
-                      value={form.expiredDate}
-                      onChange={(event) =>
-                        handleChange("expiredDate", event.target.value)
-                      }
-                      disabled={!selectedEmployeeId}
-                    />
-                  </label>
-                  <label className="space-y-2 text-sm font-medium">
-                    실적시간
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={form.workHours}
-                      onChange={(event) =>
-                        handleChange("workHours", event.target.value)
-                      }
-                      disabled={!selectedEmployeeId}
-                    />
-                  </label>
-                </div>
+                <label className="space-y-2 text-sm font-medium">
+                  취득일
+                  <Input
+                    type="date"
+                    value={form.acquiredDate}
+                    onChange={(event) =>
+                      handleChange("acquiredDate", event.target.value)
+                    }
+                    disabled={!selectedEmployeeId}
+                  />
+                </label>
+                <label className="space-y-2 text-sm font-medium">
+                  갱신일
+                  <Input
+                    type="date"
+                    value={form.renewedDate}
+                    onChange={(event) =>
+                      handleChange("renewedDate", event.target.value)
+                    }
+                    disabled={!selectedEmployeeId}
+                  />
+                </label>
+                <label className="space-y-2 text-sm font-medium">
+                  만료일
+                  <Input
+                    type="date"
+                    value={form.expiredDate}
+                    onChange={(event) =>
+                      handleChange("expiredDate", event.target.value)
+                    }
+                    disabled={!selectedEmployeeId}
+                  />
+                </label>
+                <label className="space-y-2 text-sm font-medium">
+                  실적시간
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={form.workHours}
+                    onChange={(event) =>
+                      handleChange("workHours", event.target.value)
+                    }
+                    disabled={!selectedEmployeeId}
+                  />
+                </label>
                 <label className="space-y-2 text-sm font-medium">
                   자격상태
                   <Input
@@ -583,7 +609,7 @@ export function EmployeeCertificatesManager() {
                     disabled={!selectedEmployeeId}
                   />
                 </label>
-                <label className="space-y-2 text-sm font-medium">
+                <label className="space-y-2 text-sm font-medium lg:col-span-2 2xl:col-span-3">
                   메모
                   <Input
                     value={form.memo}

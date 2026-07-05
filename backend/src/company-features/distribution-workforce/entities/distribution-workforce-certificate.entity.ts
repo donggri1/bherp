@@ -1,5 +1,7 @@
-import { Column, Entity, Index } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { CompanyBaseEntity } from '../../../common/entities/company-base.entity';
+import { EmployeeCertificate } from '../../../modules/employee-certificates/entities/employee-certificate.entity';
+import { Employee } from '../../../modules/employees/entities/employee.entity';
 
 @Entity('distribution_workforce_certificates')
 @Index(['companyId', 'employeeId', 'qualificationName'])
@@ -7,8 +9,16 @@ export class DistributionWorkforceCertificate extends CompanyBaseEntity {
   @Column({ type: 'int' })
   employeeId: number;
 
+  @ManyToOne(() => Employee, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'employeeId' })
+  employee?: Employee;
+
   @Column({ type: 'int' })
   employeeCertificateId: number;
+
+  @ManyToOne(() => EmployeeCertificate, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'employeeCertificateId' })
+  employeeCertificate?: EmployeeCertificate;
 
   @Column({ type: 'varchar', length: 50 })
   qualificationName: string;

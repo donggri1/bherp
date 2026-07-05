@@ -40,6 +40,13 @@ export function createRole(form: RoleForm) {
   });
 }
 
+export function copyRole(id: number) {
+  return apiClient<Role>(`${PATH}/${id}/copy`, {
+    method: "POST",
+    accessToken: authToken(),
+  });
+}
+
 export function updateRole(id: number, form: RoleForm) {
   return apiClient<Role>(`${PATH}/${id}`, {
     method: "PATCH",

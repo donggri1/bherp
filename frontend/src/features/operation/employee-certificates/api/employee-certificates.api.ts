@@ -38,6 +38,8 @@ export function getEmployeeCertificates(query: EmployeeCertificateQuery = {}) {
   if (query.employeeId) params.set("employeeId", String(query.employeeId));
   if (query.certificateTypeId)
     params.set("certificateTypeId", String(query.certificateTypeId));
+  if (query.certificateTypeIds?.length)
+    params.set("certificateTypeIds", query.certificateTypeIds.join(","));
   if (query.isActive !== undefined)
     params.set("isActive", String(query.isActive));
   if (query.expiredDateFrom)
@@ -61,6 +63,8 @@ export function getEmployeeCertificateInquiries(
   if (query.employeeId) params.set("employeeId", String(query.employeeId));
   if (query.certificateTypeId)
     params.set("certificateTypeId", String(query.certificateTypeId));
+  if (query.certificateTypeIds?.length)
+    params.set("certificateTypeIds", query.certificateTypeIds.join(","));
   if (query.isActive !== undefined)
     params.set("isActive", String(query.isActive));
   if (query.expiredDateFrom)

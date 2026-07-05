@@ -224,6 +224,33 @@ NEXT_PUBLIC_API_BASE_URL=/api
 
 신규 기준정보에서 코드 자동생성이 필요하면 `SequencesService.issue(companyId, targetType)` 패턴을 따릅니다.
 
+## 데이터베이스 관계 요약
+
+기본 PK는 대부분 `id`입니다. 회사별 데이터 테이블은 `CompanyBaseEntity`를 상속하고, `companyId`로 `companies.id`를 참조합니다.
+
+주요 FK 관계:
+
+- `business_units.businessRegistrationId` -> `business_registrations.id`
+- `departments.businessUnitId` -> `business_units.id`
+- `departments.parentId` -> `departments.id`
+- `employees.userId` -> `users.id`
+- `employees.businessUnitId` -> `business_units.id`
+- `employee_certificates.employeeId` -> `employees.id`
+- `employee_certificates.certificateTypeId` -> `certificate_types.id`
+- `distribution_workforce_certificates.employeeId` -> `employees.id`
+- `distribution_workforce_certificates.employeeCertificateId` -> `employee_certificates.id`
+- `user_roles.userId` -> `users.id`
+- `user_roles.roleId` -> `roles.id`
+- `role_menu_permissions.roleId` -> `roles.id`
+- `role_menu_permissions.menuId` -> `menus.id`
+- `menus.parentId` -> `menus.id`
+
+주의:
+
+- `employees.departmentName`, `employees.positionName`은 현재 이름 문자열로 저장하며 `departments`, `positions` FK가 아니다.
+- `common_codes.groupCode`와 `sequence_currents.targetType`은 회사별 코드값으로 연결되는 논리 관계이며, 현재 TypeORM FK 관계로 묶지 않는다.
+- 자격증 중복 방지는 DB unique 제약보다 서비스 upsert 로직에서 처리한다. 기존 중복 데이터 정리 전에는 `employee_certificates(companyId, employeeId, certificateTypeId)`를 unique로 바꾸지 않는다.
+
 ## 자격증 기능 상세
 
 ### 자격증종류등록
@@ -323,4 +350,3 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - PC가 절전모드에 들어가면 외부 접속은 끊깁니다.
 - 권한 메뉴를 추가하면 백엔드 seed와 프론트 메뉴를 둘 다 갱신해야 합니다.
 - 화면 디자인은 기존 운영 화면 톤을 유지합니다. 과한 랜딩 페이지나 마케팅형 UI를 만들지 않습니다.
-

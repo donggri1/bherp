@@ -5,6 +5,7 @@ export type CertificateExpiryAlertRule = {
 
 export type AdminSettings = {
   certificateExpiryAlertRules: CertificateExpiryAlertRule[];
+  certificateExpiryAlertRoleIds: number[];
 };
 
 export type CertificateExpiryAlert = {

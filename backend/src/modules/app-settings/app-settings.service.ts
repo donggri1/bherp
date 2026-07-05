@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThanOrEqual, Repository } from 'typeorm';
+import { In, LessThanOrEqual, Repository } from 'typeorm';
 import { CertificateType } from '../certificate-types/entities/certificate-type.entity';
 import { EmployeeCertificate } from '../employee-certificates/entities/employee-certificate.entity';
 import { Employee } from '../employees/entities/employee.entity';
+import { UserRole } from '../roles/entities/user-role.entity';
 import { CertificateExpiryAlertRuleDto, UpdateAppSettingsDto } from './dto/update-app-settings.dto';
 import { AppSetting } from './entities/app-setting.entity';
 
 const CERTIFICATE_EXPIRY_ALERT_RULES_KEY = 'CERTIFICATE_EXPIRY_ALERT_RULES';
+const CERTIFICATE_EXPIRY_ALERT_ROLE_IDS_KEY =
+  'CERTIFICATE_EXPIRY_ALERT_ROLE_IDS';
 
 const defaultCertificateExpiryAlertRules: CertificateExpiryAlertRuleDto[] = [
   { amount: 1, unit: 'hour' },
@@ -41,11 +44,15 @@ export class AppSettingsService {
     private readonly employeeRepository: Repository<Employee>,
     @InjectRepository(CertificateType)
     private readonly certificateTypeRepository: Repository<CertificateType>,
+    @InjectRepository(UserRole)
+    private readonly userRoleRepository: Repository<UserRole>,
   ) {}
 
   async getSettings(companyId: number) {
     return {
       certificateExpiryAlertRules: await this.getCertificateExpiryAlertRules(companyId),
+      certificateExpiryAlertRoleIds:
+        await this.getCertificateExpiryAlertRoleIds(companyId),
     };
   }
 
@@ -55,10 +62,28 @@ export class AppSettingsService {
       CERTIFICATE_EXPIRY_ALERT_RULES_KEY,
       this.normalizeRules(dto.certificateExpiryAlertRules),
     );
+    await this.upsertSetting(
+      companyId,
+      CERTIFICATE_EXPIRY_ALERT_ROLE_IDS_KEY,
+      this.normalizeRoleIds(dto.certificateExpiryAlertRoleIds ?? []),
+    );
     return this.getSettings(companyId);
   }
 
-  async getCertificateExpiryAlerts(companyId: number) {
+  async getCertificateExpiryAlerts(companyId: number, userId: number) {
+    const receiverRoleIds =
+      await this.getCertificateExpiryAlertRoleIds(companyId);
+    if (receiverRoleIds.length) {
+      const matchedRoles = await this.userRoleRepository.count({
+        where: {
+          companyId,
+          userId,
+          roleId: In(receiverRoleIds),
+        },
+      });
+      if (!matchedRoles) return [];
+    }
+
     const rules = await this.getCertificateExpiryAlertRules(companyId);
     if (!rules.length) return [];
 
@@ -139,6 +164,14 @@ export class AppSettingsService {
     return this.normalizeRules(setting.settingValue as CertificateExpiryAlertRuleDto[]);
   }
 
+  private async getCertificateExpiryAlertRoleIds(companyId: number) {
+    const setting = await this.repository.findOne({
+      where: { companyId, settingKey: CERTIFICATE_EXPIRY_ALERT_ROLE_IDS_KEY },
+    });
+    if (!setting) return [];
+    return this.normalizeRoleIds(setting.settingValue as number[]);
+  }
+
   private normalizeRules(rules: CertificateExpiryAlertRuleDto[]) {
     const ruleMap = new Map<string, CertificateExpiryAlertRuleDto>();
     for (const rule of rules) {
@@ -147,6 +180,16 @@ export class AppSettingsService {
       ruleMap.set(`${normalized.amount}:${normalized.unit}`, normalized);
     }
     return [...ruleMap.values()].sort((a, b) => ruleToMilliseconds(a) - ruleToMilliseconds(b));
+  }
+
+  private normalizeRoleIds(roleIds: number[]) {
+    return [
+      ...new Set(
+        (roleIds ?? [])
+          .map((roleId) => Number(roleId))
+          .filter((roleId) => Number.isInteger(roleId) && roleId > 0),
+      ),
+    ];
   }
 
   private async upsertSetting(companyId: number, settingKey: string, settingValue: unknown) {

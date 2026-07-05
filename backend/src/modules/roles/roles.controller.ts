@@ -32,6 +32,11 @@ export class RolesController {
     return this.rolesService.create(companyId, dto);
   }
 
+  @Post(':id/copy')
+  copy(@CompanyId() companyId: number, @Param('id') id: string) {
+    return this.rolesService.copy(companyId, Number(id));
+  }
+
   @Patch(':id')
   update(@CompanyId() companyId: number, @Param('id') id: string, @Body() dto: UpdateRoleDto) {
     return this.rolesService.update(companyId, Number(id), dto);

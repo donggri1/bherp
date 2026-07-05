@@ -1,4 +1,4 @@
-import { Column, Entity, Index } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from '../../../common/entities/base.entity';
 
 @Entity('menus')
@@ -17,7 +17,11 @@ export class Menu extends BaseEntity {
   path: string;
 
   @Column({ nullable: true })
-  parentId?: number;
+  parentId?: number | null;
+
+  @ManyToOne(() => Menu, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'parentId' })
+  parent?: Menu | null;
 
   @Column({ default: 0 })
   sortOrder: number;

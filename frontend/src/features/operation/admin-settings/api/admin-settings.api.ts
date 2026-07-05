@@ -21,11 +21,17 @@ export function getAdminSettings() {
   });
 }
 
-export function updateAdminSettings(certificateExpiryAlertRules: CertificateExpiryAlertRule[]) {
+export function updateAdminSettings(
+  certificateExpiryAlertRules: CertificateExpiryAlertRule[],
+  certificateExpiryAlertRoleIds: number[],
+) {
   return apiClient<AdminSettings>(SETTINGS_PATH, {
     method: "PUT",
     accessToken: authToken(),
-    body: JSON.stringify({ certificateExpiryAlertRules }),
+    body: JSON.stringify({
+      certificateExpiryAlertRules,
+      certificateExpiryAlertRoleIds,
+    }),
   });
 }
 

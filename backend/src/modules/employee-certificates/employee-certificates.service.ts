@@ -26,11 +26,17 @@ export class EmployeeCertificatesService {
       });
     }
 
-    if (query.certificateTypeId) {
+    const certificateTypeIds = query.certificateTypeIds?.length
+      ? query.certificateTypeIds
+      : query.certificateTypeId
+        ? [query.certificateTypeId]
+        : [];
+
+    if (certificateTypeIds.length) {
       builder.andWhere(
-        'employeeCertificate.certificateTypeId = :certificateTypeId',
+        'employeeCertificate.certificateTypeId IN (:...certificateTypeIds)',
         {
-          certificateTypeId: query.certificateTypeId,
+          certificateTypeIds,
         },
       );
     }

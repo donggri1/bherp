@@ -48,6 +48,19 @@ function getExpiryStatus(expiredDate?: string) {
   return { label: "유효", className: "text-emerald-700 font-medium" };
 }
 
+function getWorkHoursClassName(
+  certificateTypeName?: string,
+  workHours?: string,
+) {
+  const hours = Number(workHours);
+  if (!certificateTypeName || !Number.isFinite(hours)) return "";
+  if (certificateTypeName === "무정전" && hours >= 24)
+    return "font-semibold text-blue-600";
+  if (certificateTypeName === "지중배전" && hours >= 40)
+    return "font-semibold text-blue-600";
+  return "";
+}
+
 export function EmployeeCertificateInquiryManager() {
   const router = useRouter();
   const [items, setItems] = useState<EmployeeCertificate[]>([]);
@@ -56,7 +69,7 @@ export function EmployeeCertificateInquiryManager() {
     [],
   );
   const [employeeKeyword, setEmployeeKeyword] = useState("");
-  const [certificateTypeId, setCertificateTypeId] = useState("");
+  const [certificateTypeIds, setCertificateTypeIds] = useState<number[]>([]);
   const [expiredDateFrom, setExpiredDateFrom] = useState("");
   const [expiredDateTo, setExpiredDateTo] = useState("");
   const [isActive, setIsActive] = useState("");
@@ -103,8 +116,8 @@ export function EmployeeCertificateInquiryManager() {
       const result = await getEmployeeCertificateInquiries({
         page: 1,
         limit: 100,
-        certificateTypeId: certificateTypeId
-          ? Number(certificateTypeId)
+        certificateTypeIds: certificateTypeIds.length
+          ? certificateTypeIds
           : undefined,
         expiredDateFrom: expiredDateFrom || undefined,
         expiredDateTo: expiredDateTo || undefined,
@@ -134,6 +147,14 @@ export function EmployeeCertificateInquiryManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleCertificateTypeToggle = (certificateTypeId: number) => {
+    setCertificateTypeIds((current) =>
+      current.includes(certificateTypeId)
+        ? current.filter((id) => id !== certificateTypeId)
+        : [...current, certificateTypeId],
+    );
+  };
+
   return (
     <>
       <PageHeader
@@ -146,7 +167,7 @@ export function EmployeeCertificateInquiryManager() {
           <CardTitle>검색조건</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div className="grid gap-4 lg:grid-cols-5">
+          <div className="grid gap-4 lg:grid-cols-[minmax(180px,1fr)_minmax(260px,1.4fr)_repeat(3,minmax(150px,1fr))]">
             <label className="space-y-2 text-sm font-medium">
               사원명/코드
               <Input
@@ -155,21 +176,32 @@ export function EmployeeCertificateInquiryManager() {
                 onChange={(event) => setEmployeeKeyword(event.target.value)}
               />
             </label>
-            <label className="space-y-2 text-sm font-medium">
-              자격증 종류
-              <select
-                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
-                value={certificateTypeId}
-                onChange={(event) => setCertificateTypeId(event.target.value)}
-              >
-                <option value="">전체</option>
+            <div className="space-y-2 text-sm font-medium">
+              <div>자격증 종류</div>
+              <div className="max-h-28 overflow-auto rounded-md border border-input bg-background p-2">
+                <label className="flex items-center gap-2 rounded px-1 py-1 text-sm font-normal">
+                  <input
+                    type="checkbox"
+                    checked={!certificateTypeIds.length}
+                    onChange={() => setCertificateTypeIds([])}
+                  />
+                  전체
+                </label>
                 {certificateTypes.map((item) => (
-                  <option key={item.id} value={item.id}>
+                  <label
+                    key={item.id}
+                    className="flex items-center gap-2 rounded px-1 py-1 text-sm font-normal hover:bg-muted/60"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={certificateTypeIds.includes(item.id)}
+                      onChange={() => handleCertificateTypeToggle(item.id)}
+                    />
                     {item.certificateTypeName}
-                  </option>
+                  </label>
                 ))}
-              </select>
-            </label>
+              </div>
+            </div>
             <label className="space-y-2 text-sm font-medium">
               만료일 시작
               <Input
@@ -221,7 +253,7 @@ export function EmployeeCertificateInquiryManager() {
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
-          <Table>
+          <Table className="min-w-[1280px]">
             <TableHeader>
               <TableRow>
                 <TableHead>사원</TableHead>
@@ -233,7 +265,8 @@ export function EmployeeCertificateInquiryManager() {
                 <TableHead>갱신일</TableHead>
                 <TableHead>만료일</TableHead>
                 <TableHead>자격상태</TableHead>
-                <TableHead>실적시간</TableHead>
+                <TableHead className="text-right">실적시간</TableHead>
+                <TableHead>메모</TableHead>
                 <TableHead>만료상태</TableHead>
                 <TableHead>사용여부</TableHead>
               </TableRow>
@@ -246,6 +279,8 @@ export function EmployeeCertificateInquiryManager() {
                     item.certificateTypeId,
                   );
                   const expiryStatus = getExpiryStatus(item.expiredDate);
+                  const certificateTypeName =
+                    certificateType?.certificateTypeName;
 
                   return (
                     <TableRow key={item.id}>
@@ -272,7 +307,20 @@ export function EmployeeCertificateInquiryManager() {
                       <TableCell>{item.renewedDate ?? "-"}</TableCell>
                       <TableCell>{item.expiredDate ?? "-"}</TableCell>
                       <TableCell>{item.qualificationStatus ?? "-"}</TableCell>
-                      <TableCell>{item.workHours ?? "-"}</TableCell>
+                      <TableCell
+                        className={cn(
+                          "text-right tabular-nums",
+                          getWorkHoursClassName(
+                            certificateTypeName,
+                            item.workHours,
+                          ),
+                        )}
+                      >
+                        {item.workHours ?? "-"}
+                      </TableCell>
+                      <TableCell className="max-w-[260px] truncate">
+                        {item.memo ?? "-"}
+                      </TableCell>
                       <TableCell className={cn(expiryStatus.className)}>
                         {expiryStatus.label}
                       </TableCell>
@@ -283,7 +331,7 @@ export function EmployeeCertificateInquiryManager() {
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={12}
+                    colSpan={13}
                     className="h-24 text-center text-muted-foreground"
                   >
                     조회된 데이터가 없습니다.
