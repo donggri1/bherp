@@ -114,7 +114,7 @@ export function AdminSettingsManager() {
     <>
       <PageHeader title="환경설정" description="관리자 설정을 등록하고 관리합니다." />
 
-      <Card>
+      <Card className="min-w-0">
         <CardHeader>
           <CardTitle>검색조건</CardTitle>
         </CardHeader>
@@ -150,8 +150,8 @@ export function AdminSettingsManager() {
         <CardHeader>
           <CardTitle>자격증 만료 알람 기준</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto p-0">
-          <Table>
+        <CardContent className="max-h-[360px] overflow-auto p-0">
+          <Table className="min-w-[520px]">
             <TableHeader>
               <TableRow>
                 <TableHead>알람시점</TableHead>
@@ -185,7 +185,7 @@ export function AdminSettingsManager() {
                       <option value="day">일 전</option>
                     </select>
                   </TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell className="whitespace-nowrap font-medium">
                     만료 {rule.amount}{rule.unit === "hour" ? "시간" : "일"} 전
                   </TableCell>
                   <TableCell>

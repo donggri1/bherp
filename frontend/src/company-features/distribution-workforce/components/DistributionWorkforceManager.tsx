@@ -263,26 +263,26 @@ export function DistributionWorkforceManager() {
       {message ? <div className="rounded-md border bg-background px-4 py-3 text-sm">{message}</div> : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>사원 목록</CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="max-h-[560px] overflow-auto p-0">
+            <Table className="min-w-[1180px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12"></TableHead>
-                  <TableHead>사원코드</TableHead>
-                  <TableHead>사원명</TableHead>
-                  <TableHead>부서</TableHead>
-                  <TableHead>직위</TableHead>
-                  <TableHead>휴대폰</TableHead>
-                  <TableHead>배전기능자격</TableHead>
-                  <TableHead>자격번호</TableHead>
-                  <TableHead>생년월일</TableHead>
-                  <TableHead>무정전</TableHead>
-                  <TableHead>지중배전</TableHead>
-                  <TableHead>최근 조회</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                  <TableHead className="w-24 whitespace-nowrap">사원코드</TableHead>
+                  <TableHead className="w-24 whitespace-nowrap">사원명</TableHead>
+                  <TableHead className="w-32 whitespace-nowrap">부서</TableHead>
+                  <TableHead className="w-24 whitespace-nowrap">직위</TableHead>
+                  <TableHead className="w-32 whitespace-nowrap">휴대폰</TableHead>
+                  <TableHead className="w-24 whitespace-nowrap">배전기능자격</TableHead>
+                  <TableHead className="w-36 whitespace-nowrap">자격번호</TableHead>
+                  <TableHead className="w-20 whitespace-nowrap">생년월일</TableHead>
+                  <TableHead className="w-28 whitespace-nowrap">무정전</TableHead>
+                  <TableHead className="w-28 whitespace-nowrap">지중배전</TableHead>
+                  <TableHead className="w-24 whitespace-nowrap">최근 조회</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -291,20 +291,20 @@ export function DistributionWorkforceManager() {
                     const checked = selectedIds.has(item.id);
                     return (
                       <TableRow key={item.id} className={cn("cursor-pointer", checked && "bg-muted")} onClick={() => toggleSelected(item)}>
-                        <TableCell>
+                        <TableCell className="text-center">
                           <input type="checkbox" checked={checked} onChange={() => toggleSelected(item)} onClick={(event) => event.stopPropagation()} />
                         </TableCell>
-                        <TableCell>{item.employeeCode}</TableCell>
-                        <TableCell className="font-medium">{item.employeeName}</TableCell>
-                        <TableCell>{item.departmentName ?? "-"}</TableCell>
-                        <TableCell>{item.positionName ?? "-"}</TableCell>
-                        <TableCell>{item.phone ?? "-"}</TableCell>
-                        <TableCell>{item.hasBaseCertificate ? "등록" : "미등록"}</TableCell>
-                        <TableCell>{item.hasBaseCertificateNo ? (item.baseCertificateNoMasked ?? "입력") : "미입력"}</TableCell>
-                        <TableCell>{item.birthDateAvailable ? "가능" : "불가"}</TableCell>
-                        <TableCell>{statusText(item.noOutageStatus)}</TableCell>
-                        <TableCell>{statusText(item.undergroundStatus)}</TableCell>
-                        <TableCell>{item.lastFetchedAt ? item.lastFetchedAt.slice(0, 10) : "-"}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.employeeCode}</TableCell>
+                        <TableCell className="whitespace-nowrap font-medium">{item.employeeName}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.departmentName ?? "-"}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.positionName ?? "-"}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.phone ?? "-"}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.hasBaseCertificate ? "등록" : "미등록"}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.hasBaseCertificateNo ? (item.baseCertificateNo ?? item.baseCertificateNoMasked ?? "입력") : "미입력"}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.birthDateAvailable ? "가능" : "불가"}</TableCell>
+                        <TableCell className="whitespace-nowrap">{statusText(item.noOutageStatus)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{statusText(item.undergroundStatus)}</TableCell>
+                        <TableCell className="whitespace-nowrap">{item.lastFetchedAt ? item.lastFetchedAt.slice(0, 10) : "-"}</TableCell>
                       </TableRow>
                     );
                   })

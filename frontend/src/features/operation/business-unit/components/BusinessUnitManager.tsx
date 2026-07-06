@@ -223,12 +223,12 @@ export function BusinessUnitManager() {
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>목록</CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="max-h-[520px] overflow-auto p-0">
+            <Table className="min-w-[680px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>사업단위코드</TableHead>
@@ -246,13 +246,13 @@ export function BusinessUnitManager() {
                       className={cn("cursor-pointer", selectedId === item.id && "bg-muted")}
                       onClick={() => handleSelect(item)}
                     >
-                      <TableCell>{item.businessUnitCode}</TableCell>
-                      <TableCell className="font-medium">{item.businessUnitName}</TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">{item.businessUnitCode}</TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">{item.businessUnitName}</TableCell>
+                      <TableCell className="whitespace-nowrap">
                         {businessRegistrationMap.get(item.businessRegistrationId) ?? "-"}
                       </TableCell>
-                      <TableCell>{item.sortOrder}</TableCell>
-                      <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.sortOrder}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.isActive ? "사용" : "미사용"}</TableCell>
                     </TableRow>
                   ))
                 ) : (

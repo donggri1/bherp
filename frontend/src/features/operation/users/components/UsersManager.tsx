@@ -190,12 +190,12 @@ export function UsersManager() {
       {message ? <div className="rounded-md border bg-background px-4 py-3 text-sm">{message}</div> : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>목록</CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="max-h-[520px] overflow-auto p-0">
+            <Table className="min-w-[780px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>로그인ID</TableHead>
@@ -214,12 +214,12 @@ export function UsersManager() {
                       className={cn("cursor-pointer", selectedId === item.id && "bg-muted")}
                       onClick={() => handleSelect(item)}
                     >
-                      <TableCell>{item.loginId}</TableCell>
-                      <TableCell className="font-medium">{item.userName}</TableCell>
-                      <TableCell>{item.email ?? "-"}</TableCell>
-                      <TableCell>{item.phone ?? "-"}</TableCell>
-                      <TableCell>{item.lastLoginAt ? item.lastLoginAt.slice(0, 10) : "-"}</TableCell>
-                      <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.loginId}</TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">{item.userName}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.email ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.phone ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.lastLoginAt ? item.lastLoginAt.slice(0, 10) : "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.isActive ? "사용" : "미사용"}</TableCell>
                     </TableRow>
                   ))
                 ) : (

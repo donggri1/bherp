@@ -7,6 +7,7 @@ export type DistributionWorkforceEmployee = {
   phone?: string | null;
   hasBaseCertificate: boolean;
   hasBaseCertificateNo: boolean;
+  baseCertificateNo?: string | null;
   baseCertificateNoMasked?: string | null;
   birthDateAvailable: boolean;
   birthDateSource?: "residentRegistrationNumber";

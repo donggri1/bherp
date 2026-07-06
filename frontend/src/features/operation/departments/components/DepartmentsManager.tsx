@@ -208,12 +208,12 @@ export function DepartmentsManager() {
       {message ? <div className="rounded-md border bg-background px-4 py-3 text-sm">{message}</div> : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>목록</CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="max-h-[520px] overflow-auto p-0">
+            <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>부서코드</TableHead>
@@ -231,11 +231,11 @@ export function DepartmentsManager() {
                       className={cn("cursor-pointer", selectedId === item.id && "bg-muted")}
                       onClick={() => handleSelect(item)}
                     >
-                      <TableCell>{item.departmentCode}</TableCell>
-                      <TableCell className="font-medium">{item.departmentName}</TableCell>
-                      <TableCell>{item.businessUnitId ? businessUnitMap.get(item.businessUnitId) ?? "-" : "-"}</TableCell>
-                      <TableCell>{item.sortOrder}</TableCell>
-                      <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.departmentCode}</TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">{item.departmentName}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.businessUnitId ? businessUnitMap.get(item.businessUnitId) ?? "-" : "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.sortOrder}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.isActive ? "사용" : "미사용"}</TableCell>
                     </TableRow>
                   ))
                 ) : (

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Download, Upload } from "lucide-react";
 
 import { ActionButtons } from "@/components/common/ActionButtons";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,7 +26,14 @@ import type { Position } from "@/features/operation/positions/types/position.typ
 import { getUsers } from "@/features/operation/users/api/users.api";
 import type { ManagedUser } from "@/features/operation/users/types/user-management.types";
 import { cn } from "@/lib/utils";
-import { createEmployee, deleteEmployee, getEmployees, updateEmployee } from "../api/employees.api";
+import {
+  createEmployee,
+  deleteEmployee,
+  downloadEmployeeImportTemplate,
+  getEmployees,
+  importEmployeesFromExcel,
+  updateEmployee,
+} from "../api/employees.api";
 import type { Employee, EmployeeForm } from "../types/employee.types";
 
 const emptyForm: EmployeeForm = {
@@ -63,6 +72,7 @@ function toForm(item: Employee): EmployeeForm {
 
 export function EmployeesManager() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<Employee[]>([]);
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
@@ -197,6 +207,65 @@ export function EmployeesManager() {
     }
   };
 
+  const handleDownloadTemplate = async () => {
+    setLoading(true);
+    setMessage("");
+    try {
+      const result = await downloadEmployeeImportTemplate();
+      const url = URL.createObjectURL(result.blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setMessage("사원등록 양식을 다운로드했습니다.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "사원등록 양식 다운로드에 실패했습니다.");
+      if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (!/\.(xlsx|xls)$/i.test(file.name)) {
+      setMessage("사원 등록 파일은 .xlsx 또는 .xls만 업로드할 수 있습니다.");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+    try {
+      const result = await importEmployeesFromExcel(file);
+      await loadItems();
+      const failures = result.items
+        .filter((item) => item.status === "failed")
+        .slice(0, 3)
+        .map((item) => `${item.rowNo}행: ${item.message}`);
+      setMessage(
+        [
+          `엑셀 등록 완료: 성공 ${result.created}건, 실패 ${result.failed}건`,
+          ...failures,
+        ].join("\n"),
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "사원 엑셀 등록에 실패했습니다.");
+      if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <PageHeader title="사원등록" description="사원 정보를 등록하고 관리합니다." />
@@ -226,26 +295,45 @@ export function EmployeesManager() {
         </CardContent>
       </Card>
 
-      <ActionButtons
-        onSearch={loadItems}
-        onNew={handleNew}
-        onSave={handleSave}
-        onDelete={handleDelete}
-        searchDisabled={loading}
-        newDisabled={loading}
-        saveDisabled={loading}
-        deleteDisabled={loading || !selectedId}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={handleDownloadTemplate} disabled={loading}>
+            <Download className="size-4" aria-hidden />
+            양식 다운로드
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleImportClick} disabled={loading}>
+            <Upload className="size-4" aria-hidden />
+            엑셀 업로드
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImportFile}
+          />
+        </div>
+        <ActionButtons
+          onSearch={loadItems}
+          onNew={handleNew}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          searchDisabled={loading}
+          newDisabled={loading}
+          saveDisabled={loading}
+          deleteDisabled={loading || !selectedId}
+        />
+      </div>
 
-      {message ? <div className="rounded-md border bg-background px-4 py-3 text-sm">{message}</div> : null}
+      {message ? <div className="whitespace-pre-line rounded-md border bg-background px-4 py-3 text-sm">{message}</div> : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>목록</CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="max-h-[520px] overflow-auto p-0">
+            <Table className="min-w-[900px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>사원코드</TableHead>
@@ -266,14 +354,14 @@ export function EmployeesManager() {
                       className={cn("cursor-pointer", selectedId === item.id && "bg-muted")}
                       onClick={() => handleSelect(item)}
                     >
-                      <TableCell>{item.employeeCode}</TableCell>
-                      <TableCell className="font-medium">{item.employeeName}</TableCell>
-                      <TableCell>{item.businessUnitId ? businessUnitMap.get(item.businessUnitId) ?? "-" : "-"}</TableCell>
-                      <TableCell>{item.departmentName ?? "-"}</TableCell>
-                      <TableCell>{item.positionName ?? "-"}</TableCell>
-                      <TableCell>{item.phone ?? "-"}</TableCell>
-                      <TableCell>{item.hireDate ?? "-"}</TableCell>
-                      <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.employeeCode}</TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">{item.employeeName}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.businessUnitId ? businessUnitMap.get(item.businessUnitId) ?? "-" : "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.departmentName ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.positionName ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.phone ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.hireDate ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.isActive ? "사용" : "미사용"}</TableCell>
                     </TableRow>
                   ))
                 ) : (

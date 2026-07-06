@@ -43,6 +43,7 @@ type DistributionWorkforceEmployeeStatus = {
   phone?: string | null;
   hasBaseCertificate: boolean;
   hasBaseCertificateNo: boolean;
+  baseCertificateNo?: string | null;
   baseCertificateNoMasked?: string | null;
   birthDateAvailable: boolean;
   birthDateSource?: 'residentRegistrationNumber';
@@ -330,6 +331,7 @@ export class DistributionWorkforceService {
         phone: employee.phone,
         hasBaseCertificate: Boolean(baseCertificate),
         hasBaseCertificateNo: Boolean(baseCertificate?.certificateNo?.trim()),
+        baseCertificateNo: baseCertificate?.certificateNo?.trim() || null,
         baseCertificateNoMasked: this.maskCertificateNo(
           baseCertificate?.certificateNo,
         ),

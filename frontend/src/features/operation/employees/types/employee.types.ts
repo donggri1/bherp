@@ -38,3 +38,17 @@ export type EmployeeQuery = {
   keyword?: string;
   isActive?: boolean;
 };
+
+export type EmployeeImportRowResult = {
+  rowNo: number;
+  status: "created" | "failed";
+  employeeCode?: string | null;
+  employeeName?: string | null;
+  message: string;
+};
+
+export type EmployeeImportResult = {
+  created: number;
+  failed: number;
+  items: EmployeeImportRowResult[];
+};

@@ -170,10 +170,10 @@ export function CertificateTypesManager() {
       <ActionButtons onSearch={loadItems} onNew={handleNew} onSave={handleSave} onDelete={handleDelete} searchDisabled={loading} newDisabled={loading} saveDisabled={loading} deleteDisabled={loading || !selectedId} />
       {message ? <div className="rounded-md border bg-background px-4 py-3 text-sm">{message}</div> : null}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card>
+        <Card className="min-w-0">
           <CardHeader><CardTitle>목록</CardTitle></CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="max-h-[520px] overflow-auto p-0">
+            <Table className="min-w-[680px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>자격증코드</TableHead>
@@ -186,11 +186,11 @@ export function CertificateTypesManager() {
               <TableBody>
                 {items.length ? items.map((item) => (
                   <TableRow key={item.id} className={cn("cursor-pointer", selectedId === item.id && "bg-muted")} onClick={() => handleSelect(item)}>
-                    <TableCell>{item.certificateTypeCode}</TableCell>
-                    <TableCell className="font-medium">{item.certificateTypeName}</TableCell>
-                    <TableCell>{item.issuer ?? "-"}</TableCell>
-                    <TableCell>{item.sortOrder}</TableCell>
-                    <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
+                    <TableCell className="whitespace-nowrap">{item.certificateTypeCode}</TableCell>
+                    <TableCell className="whitespace-nowrap font-medium">{item.certificateTypeName}</TableCell>
+                    <TableCell className="whitespace-nowrap">{item.issuer ?? "-"}</TableCell>
+                    <TableCell className="whitespace-nowrap">{item.sortOrder}</TableCell>
+                    <TableCell className="whitespace-nowrap">{item.isActive ? "사용" : "미사용"}</TableCell>
                   </TableRow>
                 )) : (
                   <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">조회된 데이터가 없습니다.</TableCell></TableRow>

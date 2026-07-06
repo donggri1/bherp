@@ -182,12 +182,12 @@ export function PositionsManager() {
       {message ? <div className="rounded-md border bg-background px-4 py-3 text-sm">{message}</div> : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle>목록</CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="max-h-[520px] overflow-auto p-0">
+            <Table className="min-w-[520px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>직위코드</TableHead>
@@ -204,10 +204,10 @@ export function PositionsManager() {
                       className={cn("cursor-pointer", selectedId === item.id && "bg-muted")}
                       onClick={() => handleSelect(item)}
                     >
-                      <TableCell>{item.positionCode}</TableCell>
-                      <TableCell className="font-medium">{item.positionName}</TableCell>
-                      <TableCell>{item.sortOrder}</TableCell>
-                      <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.positionCode}</TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">{item.positionName}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.sortOrder}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.isActive ? "사용" : "미사용"}</TableCell>
                     </TableRow>
                   ))
                 ) : (

@@ -335,14 +335,14 @@ export function EmployeeCertificatesManager() {
                         onClick={() => handleEmployeeSelect(item)}
                       >
                         <TableCell>
-                          <div className="font-medium">{item.employeeName}</div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="whitespace-nowrap font-medium">{item.employeeName}</div>
+                          <div className="whitespace-nowrap text-xs text-muted-foreground">
                             {item.employeeCode}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div>{item.departmentName ?? "-"}</div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="whitespace-nowrap">{item.departmentName ?? "-"}</div>
+                          <div className="whitespace-nowrap text-xs text-muted-foreground">
                             {item.positionName ?? "-"}
                           </div>
                         </TableCell>
@@ -423,34 +423,34 @@ export function EmployeeCertificatesManager() {
                 <CardTitle>보유 자격증</CardTitle>
               </CardHeader>
               <CardContent className="max-h-[460px] overflow-auto p-0">
-                <Table className="min-w-[1120px]">
+                <Table className="min-w-[920px]">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="min-w-[140px] whitespace-nowrap">
+                      <TableHead className="w-36 whitespace-nowrap">
                         자격증
                       </TableHead>
-                      <TableHead className="min-w-[150px] whitespace-nowrap">
+                      <TableHead className="w-36 whitespace-nowrap">
                         자격번호
                       </TableHead>
-                      <TableHead className="min-w-[140px] whitespace-nowrap">
+                      <TableHead className="w-36 whitespace-nowrap">
                         발급기관
                       </TableHead>
-                      <TableHead className="w-[110px] whitespace-nowrap">
+                      <TableHead className="w-24 whitespace-nowrap">
                         취득일
                       </TableHead>
-                      <TableHead className="w-[110px] whitespace-nowrap">
+                      <TableHead className="w-24 whitespace-nowrap">
                         갱신일
                       </TableHead>
-                      <TableHead className="w-[110px] whitespace-nowrap">
+                      <TableHead className="w-24 whitespace-nowrap">
                         만료일
                       </TableHead>
-                      <TableHead className="w-[100px] whitespace-nowrap">
+                      <TableHead className="w-24 whitespace-nowrap">
                         자격상태
                       </TableHead>
-                      <TableHead className="w-[100px] whitespace-nowrap text-right">
+                      <TableHead className="w-20 whitespace-nowrap text-right">
                         실적시간
                       </TableHead>
-                      <TableHead className="w-[90px] whitespace-nowrap">
+                      <TableHead className="w-20 whitespace-nowrap">
                         사용여부
                       </TableHead>
                     </TableRow>

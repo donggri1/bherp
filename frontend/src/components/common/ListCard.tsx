@@ -14,12 +14,12 @@ type ListCardProps = {
 
 export function ListCard({ columns }: ListCardProps) {
   return (
-    <Card>
+    <Card className="min-w-0">
       <CardHeader>
         <CardTitle>목록</CardTitle>
       </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
-        <Table>
+      <CardContent className="max-h-[520px] overflow-auto p-0">
+        <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow>
               {columns.map((column) => (

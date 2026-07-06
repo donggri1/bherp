@@ -162,7 +162,7 @@ export function EmployeeCertificateInquiryManager() {
         description="자격증 종류와 만료일 기준으로 사원별 자격 보유 현황을 조회합니다."
       />
 
-      <Card>
+      <Card className="min-w-0">
         <CardHeader>
           <CardTitle>검색조건</CardTitle>
         </CardHeader>
@@ -252,8 +252,8 @@ export function EmployeeCertificateInquiryManager() {
             조회결과 {filteredItems.length}건 / 전체 {total}건
           </CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto p-0">
-          <Table className="min-w-[1280px]">
+        <CardContent className="max-h-[560px] overflow-auto p-0">
+          <Table className="min-w-[1180px]">
             <TableHeader>
               <TableRow>
                 <TableHead>사원</TableHead>
@@ -285,28 +285,28 @@ export function EmployeeCertificateInquiryManager() {
                   return (
                     <TableRow key={item.id}>
                       <TableCell>
-                        <div className="font-medium">
+                        <div className="whitespace-nowrap font-medium">
                           {employee?.employeeName ?? "-"}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="whitespace-nowrap text-xs text-muted-foreground">
                           {employee?.employeeCode ?? "-"}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div>{employee?.departmentName ?? "-"}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="whitespace-nowrap">{employee?.departmentName ?? "-"}</div>
+                        <div className="whitespace-nowrap text-xs text-muted-foreground">
                           {employee?.positionName ?? "-"}
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="whitespace-nowrap font-medium">
                         {certificateType?.certificateTypeName ?? "-"}
                       </TableCell>
-                      <TableCell>{certificateType?.issuer ?? "-"}</TableCell>
-                      <TableCell>{item.certificateNo ?? "-"}</TableCell>
-                      <TableCell>{item.acquiredDate ?? "-"}</TableCell>
-                      <TableCell>{item.renewedDate ?? "-"}</TableCell>
-                      <TableCell>{item.expiredDate ?? "-"}</TableCell>
-                      <TableCell>{item.qualificationStatus ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{certificateType?.issuer ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.certificateNo ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.acquiredDate ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.renewedDate ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.expiredDate ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.qualificationStatus ?? "-"}</TableCell>
                       <TableCell
                         className={cn(
                           "text-right tabular-nums",
@@ -318,13 +318,13 @@ export function EmployeeCertificateInquiryManager() {
                       >
                         {item.workHours ?? "-"}
                       </TableCell>
-                      <TableCell className="max-w-[260px] truncate">
+                      <TableCell className="whitespace-nowrap">
                         {item.memo ?? "-"}
                       </TableCell>
-                      <TableCell className={cn(expiryStatus.className)}>
+                      <TableCell className={cn("whitespace-nowrap", expiryStatus.className)}>
                         {expiryStatus.label}
                       </TableCell>
-                      <TableCell>{item.isActive ? "사용" : "미사용"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{item.isActive ? "사용" : "미사용"}</TableCell>
                     </TableRow>
                   );
                 })

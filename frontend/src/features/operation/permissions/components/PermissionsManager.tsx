@@ -276,7 +276,7 @@ export function PermissionsManager() {
               <CardTitle>역할 목록</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y">
+              <div className="max-h-[420px] divide-y overflow-auto">
                 {roles.length ? (
                   roles.map((role) => (
                     <button
@@ -288,9 +288,9 @@ export function PermissionsManager() {
                       )}
                       onClick={() => handleSelect(role)}
                     >
-                      <span>
+                      <span className="min-w-0">
                         <span className="block font-medium">{role.roleName}</span>
-                        <span className="text-muted-foreground">{role.roleCode}</span>
+                        <span className="block text-muted-foreground">{role.roleCode}</span>
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {role.isActive ? "사용" : "미사용"}
@@ -346,7 +346,7 @@ export function PermissionsManager() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="min-w-0">
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>메뉴 권한</CardTitle>
             <button
@@ -358,27 +358,27 @@ export function PermissionsManager() {
               권한 저장
             </button>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="max-h-[560px] overflow-auto p-0">
+            <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>메뉴그룹</TableHead>
-                  <TableHead>메뉴</TableHead>
-                  <TableHead>전체</TableHead>
-                  <TableHead>조회</TableHead>
-                  <TableHead>등록</TableHead>
-                  <TableHead>수정</TableHead>
-                  <TableHead>삭제</TableHead>
-                  <TableHead>엑셀</TableHead>
+                  <TableHead className="w-32">메뉴그룹</TableHead>
+                  <TableHead className="w-40">메뉴</TableHead>
+                  <TableHead className="w-12 text-center">전체</TableHead>
+                  <TableHead className="w-12 text-center">조회</TableHead>
+                  <TableHead className="w-12 text-center">등록</TableHead>
+                  <TableHead className="w-12 text-center">수정</TableHead>
+                  <TableHead className="w-12 text-center">삭제</TableHead>
+                  <TableHead className="w-12 text-center">엑셀</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {permissionRows.length ? (
                   permissionRows.map((row) => (
                     <TableRow key={row.menu.id}>
-                      <TableCell>{row.menu.menuGroupCode}</TableCell>
-                      <TableCell className="font-medium">{row.menu.menuName}</TableCell>
-                      <TableCell>
+                      <TableCell className="whitespace-nowrap">{row.menu.menuGroupCode}</TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">{row.menu.menuName}</TableCell>
+                      <TableCell className="text-center">
                         <input
                           type="checkbox"
                           checked={isPermissionRowAllChecked(row)}
@@ -389,7 +389,7 @@ export function PermissionsManager() {
                         />
                       </TableCell>
                       {(["canRead", "canCreate", "canUpdate", "canDelete", "canExcel"] as const).map((key) => (
-                        <TableCell key={key}>
+                        <TableCell key={key} className="text-center">
                           <input
                             type="checkbox"
                             checked={row.permission[key]}

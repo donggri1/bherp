@@ -232,7 +232,7 @@ export function SungwonTaxInvoiceConverterManager() {
             <CardHeader>
               <CardTitle>변환 미리보기</CardTitle>
             </CardHeader>
-            <CardContent className="overflow-x-auto p-0">
+            <CardContent className="max-h-[520px] overflow-auto p-0">
               <PreviewTable rows={previewRows} />
             </CardContent>
           </Card>
@@ -307,7 +307,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function PreviewTable({ rows }: { rows: TaxInvoicePreviewRow[] }) {
   return (
-    <Table>
+    <Table className="min-w-[1080px]">
       <TableHeader>
         <TableRow>
           <TableHead>구분</TableHead>
@@ -326,16 +326,16 @@ function PreviewTable({ rows }: { rows: TaxInvoicePreviewRow[] }) {
         {rows.length ? (
           rows.map((row) => (
             <TableRow key={`${row.kind}-${row.rowNo}`}>
-              <TableCell>{row.kind === "sales" ? "매출" : "매입"}</TableCell>
-              <TableCell>{row.date}</TableCell>
-              <TableCell>{row.category}</TableCell>
-              <TableCell>{row.constructionNo ?? "-"}</TableCell>
-              <TableCell className="min-w-48">{row.partnerName}</TableCell>
-              <TableCell className="min-w-72">{row.description}</TableCell>
-              <TableCell className="text-right">{formatAmount(row.supplyAmount)}</TableCell>
-              <TableCell className="text-right">{formatAmount(row.taxAmount)}</TableCell>
-              <TableCell className="text-right">{formatAmount(row.totalAmount)}</TableCell>
-              <TableCell>{row.warningCount ? `확인 ${row.warningCount}` : row.paymentStatus}</TableCell>
+              <TableCell className="whitespace-nowrap">{row.kind === "sales" ? "매출" : "매입"}</TableCell>
+              <TableCell className="whitespace-nowrap">{row.date}</TableCell>
+              <TableCell className="whitespace-nowrap">{row.category}</TableCell>
+              <TableCell className="whitespace-nowrap">{row.constructionNo ?? "-"}</TableCell>
+              <TableCell className="whitespace-nowrap">{row.partnerName}</TableCell>
+              <TableCell className="whitespace-nowrap">{row.description}</TableCell>
+              <TableCell className="whitespace-nowrap text-right tabular-nums">{formatAmount(row.supplyAmount)}</TableCell>
+              <TableCell className="whitespace-nowrap text-right tabular-nums">{formatAmount(row.taxAmount)}</TableCell>
+              <TableCell className="whitespace-nowrap text-right tabular-nums">{formatAmount(row.totalAmount)}</TableCell>
+              <TableCell className="whitespace-nowrap">{row.warningCount ? `확인 ${row.warningCount}` : row.paymentStatus}</TableCell>
             </TableRow>
           ))
         ) : (
