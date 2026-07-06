@@ -2,6 +2,8 @@ import type { MenuGroup } from "@/types/menu";
 
 const distributionWorkforceEnabled =
   process.env.NEXT_PUBLIC_FEATURE_DISTRIBUTION_WORKFORCE !== "false";
+const sungwonTaxInvoiceConverterEnabled =
+  process.env.NEXT_PUBLIC_FEATURE_SUNGWON_TAX_INVOICE_CONVERTER !== "false";
 
 export const menuGroups: MenuGroup[] = [
   {
@@ -59,6 +61,15 @@ export const menuGroups: MenuGroup[] = [
               menuCode: "OP_DISTRIBUTION_WORKFORCE",
               title: "배전인력",
               path: "/operation/distribution-workforce",
+            },
+          ]
+        : []),
+      ...(sungwonTaxInvoiceConverterEnabled
+        ? [
+            {
+              menuCode: "OP_SUNGWON_TAX_INVOICE_CONVERTER",
+              title: "세금계산서변환",
+              path: "/operation/sungwon-tax-invoice-converter",
             },
           ]
         : []),

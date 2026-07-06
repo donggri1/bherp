@@ -7,6 +7,7 @@ import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import { DistributionWorkforceModule } from './company-features/distribution-workforce/distribution-workforce.module';
+import { SungwonTaxInvoiceConverterModule } from './company-features/sungwon-tax-invoice-converter/sungwon-tax-invoice-converter.module';
 import { DevSeedModule } from './database/seeds/dev-seed.module';
 import { getTypeOrmConfig } from './database/typeorm.config';
 import { AppSettingsModule } from './modules/app-settings/app-settings.module';
@@ -47,6 +48,7 @@ import { UsersModule } from './modules/users/users.module';
     EmployeesModule,
     EmployeeCertificatesModule,
     DistributionWorkforceModule,
+    SungwonTaxInvoiceConverterModule,
     AppSettingsModule,
     RolesModule,
     MenusModule,

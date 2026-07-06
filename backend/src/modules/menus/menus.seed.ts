@@ -1,6 +1,8 @@
 import { Menu } from './entities/menu.entity';
 
 const distributionWorkforceEnabled = process.env.FEATURE_DISTRIBUTION_WORKFORCE !== 'false';
+const sungwonTaxInvoiceConverterEnabled =
+  process.env.FEATURE_SUNGWON_TAX_INVOICE_CONVERTER !== 'false';
 
 export const initialMenus: Partial<Menu>[] = [
   {
@@ -77,18 +79,29 @@ export const initialMenus: Partial<Menu>[] = [
         },
       ]
     : []),
+  ...(sungwonTaxInvoiceConverterEnabled
+    ? [
+        {
+          menuCode: 'OP_SUNGWON_TAX_INVOICE_CONVERTER',
+          menuName: '세금계산서변환',
+          menuGroupCode: 'OPERATION',
+          path: '/operation/sungwon-tax-invoice-converter',
+          sortOrder: 11,
+        },
+      ]
+    : []),
   {
     menuCode: 'OP_PERMISSIONS',
     menuName: '권한등록',
     menuGroupCode: 'OPERATION',
     path: '/operation/permissions',
-    sortOrder: 11,
+    sortOrder: 12,
   },
   {
     menuCode: 'OP_ADMIN_SETTINGS',
     menuName: '환경설정',
     menuGroupCode: 'OPERATION',
     path: '/operation/admin-settings',
-    sortOrder: 12,
+    sortOrder: 13,
   },
 ];
