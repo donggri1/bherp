@@ -12,6 +12,19 @@
   - `frontend`: Next.js 프론트엔드
 - 기본 개발 언어/응답 언어: 한국어
 
+## AI 세션 이어받기
+
+새 AI 개발 세션을 열면 아래 문서를 먼저 읽습니다.
+
+1. `AGENTS.md`
+2. `AI_DEVELOPMENT_CONTEXT.md`
+3. `AI_SESSION_HANDOFF.md`
+4. 현재 작업과 관련된 계획 문서
+
+`AI_DEVELOPMENT_CONTEXT.md`는 프로젝트의 안정적인 기본 정보를 담고, `AI_SESSION_HANDOFF.md`는 현재 활성 작업, 최근 완료 내용, 다음 작업, 미결정 사항을 담습니다.
+
+세션 종료 시에는 `AI_SESSION_HANDOFF.md`를 갱신해 다음 세션이 바로 이어서 개발할 수 있게 합니다.
+
 ## 기술 스택
 
 ### Backend
@@ -105,7 +118,7 @@ NEXT_PUBLIC_API_BASE_URL=/api
 개발 seed 기준:
 
 - 로그인 ID: `admin`
-- 비밀번호: `Admin1234!`
+- 비밀번호: `00000000`
 
 ### Backend 권한 패턴
 
@@ -174,6 +187,25 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - `positions`
 - `users`
 - `employees`
+  - `departmentId` -> `departments.id`, `positionId` -> `positions.id` nullable FK 사용
+  - `departmentName`, `positionName`은 기존 데이터/엑셀 업로드 호환용 이름 스냅샷으로 계속 보존
+  - FK 백필 API: `POST /api/employees/organization-reference-backfill`
+    - `dryRun=true`로 미리보기 가능
+    - 부서명/직위명 exact match만 FK를 채우고, 미매칭/중복명은 리포트만 반환
+
+### 인사/자격 현황
+
+- `hr-dashboard`
+  - API: `/api/hr-dashboard`
+  - 메뉴 코드: `OP_HR_DASHBOARD`
+  - 전체 사원, 재직/퇴사, 활성 자격증, 만료 예정/만료 자격증, 부서별 인원, 자격 만료 대상 목록을 조회
+  - 부서별 집계는 `employees.departmentId` 관계를 우선 사용하고, 기존 데이터는 `departmentName` 문자열로 fallback
+- `organization-chart`
+  - API: `/api/organization-chart`
+  - 메뉴 코드: `OP_ORGANIZATION_CHART`
+  - `departments.parentId` 기준 부서 트리와 부서별 직접 사원 수를 조회
+  - 부서별 사원 목록 API: `/api/organization-chart/departments/:id/employees`
+  - 사원등록 연계: `/operation/employees?departmentId=:id`, `/operation/employees?employeeId=:id`
 
 ### 자격증
 
@@ -186,6 +218,7 @@ NEXT_PUBLIC_API_BASE_URL=/api
   - 사원 선택 후 해당 사원의 자격증을 관리하는 UX
   - 사원별 자격증에는 발급기관을 별도로 입력하지 않음
   - 조회 전용 API 포함: `/api/employee-certificate-inquiries`
+  - 자격만료현황 API 포함: `/api/employee-certificate-expiry-status`
 
 ### 환경설정/알림
 
@@ -206,12 +239,39 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - `/operation/departments`: 부서등록
 - `/operation/positions`: 직위등록
 - `/operation/users`: 사용자등록
+- `/operation/hr-dashboard`: 인사현황
 - `/operation/employees`: 사원등록
+- `/operation/organization-chart`: 부서조직도
 - `/operation/certificate-types`: 자격증종류등록
 - `/operation/employee-certificates`: 사원별자격증등록
 - `/operation/employee-certificate-inquiry`: 사원자격증조회
+- `/operation/certificate-expiry-status`: 자격만료현황
 - `/operation/permissions`: 권한등록
 - `/operation/admin-settings`: 환경설정
+
+### 사원등록 개인정보 표시 정책
+
+- 사원 목록에는 주민등록번호를 표시하지 않는다.
+- 사원 상세에서 기존 사원을 선택하면 주민등록번호는 기본 마스킹된다.
+- 눈 아이콘 버튼으로 명시적으로 보기/가리기 전환한다.
+- 마스킹 상태의 주민등록번호 입력칸은 read-only로 두어 가려진 문자열이 저장되지 않게 한다.
+- 사원등록 엑셀 양식의 `작성안내` 시트에는 주민등록번호 민감정보 취급 안내가 들어간다.
+- API 응답은 현재 호환성을 위해 기존 형태를 유지한다. 장기적으로는 목록 응답에서 민감 필드를 제외하고 상세 조회에서만 제공하는 방향을 검토한다.
+
+### 사원 프로필 구조
+
+- `/operation/employees` 상세 패널 제목은 `사원 프로필`이다.
+- 상세 입력 영역은 `기본정보`, `조직/직위`, `연락처/개인정보`, `재직정보` 섹션으로 나뉜다.
+- 현재 `employees.businessUnitId`, `departmentId`, `positionId`는 최신 상태 스냅샷으로 유지한다.
+- 조직/직위 변경 이력은 `employee_organization_histories` 테이블에 저장한다.
+- 이력 API:
+  - `GET /api/employees/:id/organization-histories`
+  - `POST /api/employees/:id/organization-histories`
+  - `POST /api/employees/organization-history-backfill?dryRun=true`
+- 사원 생성 시 현재 조직/직위 이력이 자동 생성된다.
+- 사원 수정 시 사업단위/부서/직위가 바뀌면 기존 current 이력이 종료되고 새 current 이력이 생성된다.
+- 기존 사원은 `organization-history-backfill` API로 현재 소속/직위를 이력 원장에 백필한다.
+- 조직도, 배전인력, 자격증 조회는 계속 `employees`의 최신 스냅샷 이름/ID를 기준으로 표시한다.
 
 ## 자동채번
 
@@ -235,6 +295,12 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - `departments.parentId` -> `departments.id`
 - `employees.userId` -> `users.id`
 - `employees.businessUnitId` -> `business_units.id`
+- `employees.departmentId` -> `departments.id`
+- `employees.positionId` -> `positions.id`
+- `employee_organization_histories.employeeId` -> `employees.id`
+- `employee_organization_histories.businessUnitId` -> `business_units.id`
+- `employee_organization_histories.departmentId` -> `departments.id`
+- `employee_organization_histories.positionId` -> `positions.id`
 - `employee_certificates.employeeId` -> `employees.id`
 - `employee_certificates.certificateTypeId` -> `certificate_types.id`
 - `distribution_workforce_certificates.employeeId` -> `employees.id`
@@ -247,11 +313,43 @@ NEXT_PUBLIC_API_BASE_URL=/api
 
 주의:
 
-- `employees.departmentName`, `employees.positionName`은 현재 이름 문자열로 저장하며 `departments`, `positions` FK가 아니다.
+- `employees.departmentId`, `employees.positionId`가 nullable FK 기준이다.
+- `employees.departmentName`, `employees.positionName`은 기존 데이터/엑셀 업로드 호환 및 표시 안정성을 위한 이름 스냅샷이다.
+- 기존 사원 데이터 중 이름만 있고 FK가 없는 행은 `POST /api/employees/organization-reference-backfill`로 매칭/보정한다.
 - `common_codes.groupCode`와 `sequence_currents.targetType`은 회사별 코드값으로 연결되는 논리 관계이며, 현재 TypeORM FK 관계로 묶지 않는다.
 - 자격증 중복 방지는 DB unique 제약보다 서비스 upsert 로직에서 처리한다. 기존 중복 데이터 정리 전에는 `employee_certificates(companyId, employeeId, certificateTypeId)`를 unique로 바꾸지 않는다.
 
 ## 자격증 기능 상세
+
+### 인사현황
+
+- 메뉴 코드: `OP_HR_DASHBOARD`
+- 화면: `/operation/hr-dashboard`
+- API: `/api/hr-dashboard`
+- 주요 지표:
+  - 전체 사원 수
+  - 재직/퇴사 수
+  - 활성 자격증 수
+  - 기준 기간 내 만료 예정 자격증 수
+  - 이미 만료된 자격증 수
+  - 부서별 인원 수
+  - 자격 만료 대상 목록
+- 기준 기간은 화면에서 7일, 30일, 60일, 90일로 조회 가능하다.
+
+### 부서조직도
+
+- 메뉴 코드: `OP_ORGANIZATION_CHART`
+- 화면: `/operation/organization-chart`
+- API: `/api/organization-chart`
+- 현재 범위:
+  - 부서 트리
+  - 부서코드
+  - 사용여부
+  - 부서별 직접 전체 사원 수
+  - 부서별 직접 재직 사원 수
+  - 미배정 사원 수 요약
+  - 선택 부서 사원 목록
+  - 사원등록 화면 부서 필터/사원 선택 연계
 
 ### 자격증종류등록
 
@@ -294,6 +392,16 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - 만료일
 - 만료상태
 - 사용여부
+
+### 자격만료현황
+
+- 메뉴 코드: `OP_CERTIFICATE_EXPIRY_STATUS`
+- 화면: `/operation/certificate-expiry-status`
+- API: `/api/employee-certificate-expiry-status`
+- 기본 조회 조건:
+  - 만료일 종료: 오늘부터 30일 뒤
+  - 사용여부: 사용
+- 사원자격증조회 화면 컴포넌트를 `expiry-status` 모드로 재사용한다.
 
 ## 알림 기능
 

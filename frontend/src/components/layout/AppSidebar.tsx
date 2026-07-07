@@ -17,7 +17,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
       >
         Dashboard
       </Link>
-      <div className="space-y-6">
+      <div className="space-y-2">
         {menuGroups.map((group) => (
           <MenuGroup key={group.menuGroupCode} group={group} onNavigate={onNavigate} />
         ))}

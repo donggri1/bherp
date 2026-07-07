@@ -57,7 +57,7 @@ export function MenuSearchResults({
                 selected || active ? "text-primary-foreground/75" : "text-muted-foreground",
               )}
             >
-              {menu.groupTitle} / {menu.path}
+              {menu.breadcrumb} / {menu.path}
             </span>
           </button>
         );

@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsBoolean, IsEmail, IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateEmployeeDto {
@@ -19,9 +20,19 @@ export class CreateEmployeeDto {
   businessUnitId?: number | null;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  departmentId?: number | null;
+
+  @IsOptional()
   @IsString()
   @MaxLength(100)
   departmentName?: string | null;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  positionId?: number | null;
 
   @IsOptional()
   @IsString()

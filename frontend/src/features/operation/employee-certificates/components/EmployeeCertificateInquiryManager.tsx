@@ -21,13 +21,30 @@ import type { CertificateType } from "@/features/operation/certificate-types/typ
 import { getEmployees } from "@/features/operation/employees/api/employees.api";
 import type { Employee } from "@/features/operation/employees/types/employee.types";
 import { cn } from "@/lib/utils";
-import { getEmployeeCertificateInquiries } from "../api/employee-certificates.api";
+import {
+  getEmployeeCertificateExpiryStatus,
+  getEmployeeCertificateInquiries,
+} from "../api/employee-certificates.api";
 import type { EmployeeCertificate } from "../types/employee-certificate.types";
 
 function toDate(value?: string) {
   if (!value) return null;
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function toDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getDateAfter(days: number) {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + days);
+  return toDateInputValue(date);
 }
 
 function getExpiryStatus(expiredDate?: string) {
@@ -61,8 +78,15 @@ function getWorkHoursClassName(
   return "";
 }
 
-export function EmployeeCertificateInquiryManager() {
+type EmployeeCertificateInquiryManagerProps = {
+  mode?: "inquiry" | "expiry-status";
+};
+
+export function EmployeeCertificateInquiryManager({
+  mode = "inquiry",
+}: EmployeeCertificateInquiryManagerProps) {
   const router = useRouter();
+  const expiryStatusMode = mode === "expiry-status";
   const [items, setItems] = useState<EmployeeCertificate[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [certificateTypes, setCertificateTypes] = useState<CertificateType[]>(
@@ -71,8 +95,12 @@ export function EmployeeCertificateInquiryManager() {
   const [employeeKeyword, setEmployeeKeyword] = useState("");
   const [certificateTypeIds, setCertificateTypeIds] = useState<number[]>([]);
   const [expiredDateFrom, setExpiredDateFrom] = useState("");
-  const [expiredDateTo, setExpiredDateTo] = useState("");
-  const [isActive, setIsActive] = useState("");
+  const [expiredDateTo, setExpiredDateTo] = useState(() =>
+    expiryStatusMode ? getDateAfter(30) : "",
+  );
+  const [isActive, setIsActive] = useState(() =>
+    expiryStatusMode ? "true" : "",
+  );
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -113,7 +141,7 @@ export function EmployeeCertificateInquiryManager() {
     setLoading(true);
     setMessage("");
     try {
-      const result = await getEmployeeCertificateInquiries({
+      const query = {
         page: 1,
         limit: 100,
         certificateTypeIds: certificateTypeIds.length
@@ -122,7 +150,10 @@ export function EmployeeCertificateInquiryManager() {
         expiredDateFrom: expiredDateFrom || undefined,
         expiredDateTo: expiredDateTo || undefined,
         isActive: isActive ? isActive === "true" : undefined,
-      });
+      };
+      const result = expiryStatusMode
+        ? await getEmployeeCertificateExpiryStatus(query)
+        : await getEmployeeCertificateInquiries(query);
       setItems(result.items);
       setTotal(result.total);
     } catch (error) {
@@ -158,8 +189,12 @@ export function EmployeeCertificateInquiryManager() {
   return (
     <>
       <PageHeader
-        title="사원자격증조회"
-        description="자격증 종류와 만료일 기준으로 사원별 자격 보유 현황을 조회합니다."
+        title={expiryStatusMode ? "자격만료현황" : "사원자격증조회"}
+        description={
+          expiryStatusMode
+            ? "만료되었거나 30일 이내 만료 예정인 사원 자격증을 확인합니다."
+            : "자격증 종류와 만료일 기준으로 사원별 자격 보유 현황을 조회합니다."
+        }
       />
 
       <Card className="min-w-0">
@@ -249,7 +284,8 @@ export function EmployeeCertificateInquiryManager() {
       <Card>
         <CardHeader>
           <CardTitle>
-            조회결과 {filteredItems.length}건 / 전체 {total}건
+            {expiryStatusMode ? "만료 현황" : "조회결과"}{" "}
+            {filteredItems.length}건 / 전체 {total}건
           </CardTitle>
         </CardHeader>
         <CardContent className="max-h-[560px] overflow-auto p-0">

@@ -1,8 +1,18 @@
-import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
 export class EmployeeQueryDto extends PaginationDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  employeeId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  departmentId?: number;
+
   @IsOptional()
   @IsString()
   keyword?: string;

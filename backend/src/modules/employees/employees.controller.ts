@@ -20,8 +20,10 @@ import { MenuCode } from '../../common/decorators/menu-code.decorator';
 import { Permission } from '../../common/decorators/permission.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { MenuPermissionGuard } from '../../common/guards/menu-permission.guard';
+import { CreateEmployeeOrganizationHistoryDto } from './dto/create-employee-organization-history.dto';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { EmployeeQueryDto } from './dto/employee-query.dto';
+import { OrganizationReferenceBackfillQueryDto } from './dto/organization-reference-backfill-query.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeesService } from './employees.service';
 
@@ -58,10 +60,44 @@ export class EmployeesController {
     response.send(buffer);
   }
 
+  @Post('organization-history-backfill')
+  @Permission('update')
+  backfillOrganizationHistories(
+    @CompanyId() companyId: number,
+    @Query() query: OrganizationReferenceBackfillQueryDto,
+  ) {
+    return this.service.backfillOrganizationHistories(companyId, query.dryRun);
+  }
+
+  @Get(':id/organization-histories')
+  @Permission('read')
+  findOrganizationHistories(@CompanyId() companyId: number, @Param('id') id: string) {
+    return this.service.findOrganizationHistories(companyId, Number(id));
+  }
+
+  @Post(':id/organization-histories')
+  @Permission('update')
+  createOrganizationHistory(
+    @CompanyId() companyId: number,
+    @Param('id') id: string,
+    @Body() dto: CreateEmployeeOrganizationHistoryDto,
+  ) {
+    return this.service.createOrganizationHistory(companyId, Number(id), dto);
+  }
+
   @Get(':id')
   @Permission('read')
   findOne(@CompanyId() companyId: number, @Param('id') id: string) {
     return this.service.findOne(companyId, Number(id));
+  }
+
+  @Post('organization-reference-backfill')
+  @Permission('update')
+  backfillOrganizationReferences(
+    @CompanyId() companyId: number,
+    @Query() query: OrganizationReferenceBackfillQueryDto,
+  ) {
+    return this.service.backfillOrganizationReferences(companyId, query.dryRun);
   }
 
   @Post()

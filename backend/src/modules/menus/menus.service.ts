@@ -19,7 +19,12 @@ export class MenusService implements OnModuleInit {
       const exists = await this.menuRepository.findOne({
         where: { menuCode: item.menuCode },
       });
-      if (!exists) await this.menuRepository.save(this.menuRepository.create(item));
+      if (!exists) {
+        await this.menuRepository.save(this.menuRepository.create(item));
+        continue;
+      }
+
+      await this.menuRepository.update({ id: exists.id }, item);
     }
   }
 

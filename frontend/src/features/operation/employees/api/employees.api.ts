@@ -5,6 +5,7 @@ import type {
   Employee,
   EmployeeForm,
   EmployeeImportResult,
+  EmployeeOrganizationHistory,
   EmployeeQuery,
 } from "../types/employee.types";
 
@@ -24,7 +25,9 @@ function toPayload(form: EmployeeForm) {
     employeeName: form.employeeName,
     userId: form.userId ? Number(form.userId) : null,
     businessUnitId: form.businessUnitId ? Number(form.businessUnitId) : null,
+    departmentId: form.departmentId ? Number(form.departmentId) : form.departmentName ? undefined : null,
     departmentName: form.departmentName || null,
+    positionId: form.positionId ? Number(form.positionId) : form.positionName ? undefined : null,
     positionName: form.positionName || null,
     email: form.email || null,
     phone: form.phone || null,
@@ -40,6 +43,8 @@ export function getEmployees(query: EmployeeQuery = {}) {
   const params = new URLSearchParams();
   params.set("page", String(query.page ?? 1));
   params.set("limit", String(query.limit ?? 20));
+  if (query.employeeId) params.set("employeeId", String(query.employeeId));
+  if (query.departmentId) params.set("departmentId", String(query.departmentId));
   if (query.keyword) params.set("keyword", query.keyword);
   if (query.isActive !== undefined) params.set("isActive", String(query.isActive));
 
@@ -67,6 +72,12 @@ export function updateEmployee(id: number, form: EmployeeForm) {
 export function deleteEmployee(id: number) {
   return apiClient<{ affected?: number }>(`${PATH}/${id}`, {
     method: "DELETE",
+    accessToken: authToken(),
+  });
+}
+
+export function getEmployeeOrganizationHistories(employeeId: number) {
+  return apiClient<EmployeeOrganizationHistory[]>(`${PATH}/${employeeId}/organization-histories`, {
     accessToken: authToken(),
   });
 }

@@ -93,11 +93,6 @@ export function EmployeeCertificatesManager() {
     [employees, selectedEmployeeId],
   );
 
-  const employeeMap = useMemo(
-    () => new Map(employees.map((item) => [item.id, employeeLabel(item)])),
-    [employees],
-  );
-
   const certificateTypeMap = useMemo(
     () =>
       new Map(

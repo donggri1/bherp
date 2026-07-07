@@ -9,6 +9,7 @@ import type {
 
 const PATH = "/employee-certificates";
 const INQUIRY_PATH = "/employee-certificate-inquiries";
+const EXPIRY_STATUS_PATH = "/employee-certificate-expiry-status";
 
 function authToken() {
   const accessToken = getAccessToken();
@@ -73,6 +74,31 @@ export function getEmployeeCertificateInquiries(
 
   return apiClient<ApiList<EmployeeCertificate>>(
     `${INQUIRY_PATH}?${params.toString()}`,
+    {
+      accessToken: authToken(),
+    },
+  );
+}
+
+export function getEmployeeCertificateExpiryStatus(
+  query: EmployeeCertificateQuery = {},
+) {
+  const params = new URLSearchParams();
+  params.set("page", String(query.page ?? 1));
+  params.set("limit", String(query.limit ?? 100));
+  if (query.employeeId) params.set("employeeId", String(query.employeeId));
+  if (query.certificateTypeId)
+    params.set("certificateTypeId", String(query.certificateTypeId));
+  if (query.certificateTypeIds?.length)
+    params.set("certificateTypeIds", query.certificateTypeIds.join(","));
+  if (query.isActive !== undefined)
+    params.set("isActive", String(query.isActive));
+  if (query.expiredDateFrom)
+    params.set("expiredDateFrom", query.expiredDateFrom);
+  if (query.expiredDateTo) params.set("expiredDateTo", query.expiredDateTo);
+
+  return apiClient<ApiList<EmployeeCertificate>>(
+    `${EXPIRY_STATUS_PATH}?${params.toString()}`,
     {
       accessToken: authToken(),
     },

@@ -1,6 +1,8 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { CompanyBaseEntity } from '../../../common/entities/company-base.entity';
 import { BusinessUnit } from '../../business-units/entities/business-unit.entity';
+import { Department } from '../../departments/entities/department.entity';
+import { Position } from '../../positions/entities/position.entity';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('employees')
@@ -26,8 +28,22 @@ export class Employee extends CompanyBaseEntity {
   @JoinColumn({ name: 'businessUnitId' })
   businessUnit?: BusinessUnit | null;
 
+  @Column({ type: 'int', nullable: true })
+  departmentId?: number | null;
+
+  @ManyToOne(() => Department, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'departmentId' })
+  department?: Department | null;
+
   @Column({ type: 'varchar', length: 100, nullable: true })
   departmentName?: string | null;
+
+  @Column({ type: 'int', nullable: true })
+  positionId?: number | null;
+
+  @ManyToOne(() => Position, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'positionId' })
+  position?: Position | null;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
   positionName?: string | null;

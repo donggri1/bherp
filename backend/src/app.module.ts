@@ -20,7 +20,9 @@ import { CompaniesModule } from './modules/companies/companies.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { EmployeeCertificatesModule } from './modules/employee-certificates/employee-certificates.module';
 import { EmployeesModule } from './modules/employees/employees.module';
+import { HrDashboardModule } from './modules/hr-dashboard/hr-dashboard.module';
 import { MenusModule } from './modules/menus/menus.module';
+import { OrganizationChartModule } from './modules/organization-chart/organization-chart.module';
 import { PositionsModule } from './modules/positions/positions.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { SequencesModule } from './modules/sequences/sequences.module';
@@ -46,6 +48,8 @@ import { UsersModule } from './modules/users/users.module';
     PositionsModule,
     UsersModule,
     EmployeesModule,
+    HrDashboardModule,
+    OrganizationChartModule,
     EmployeeCertificatesModule,
     DistributionWorkforceModule,
     SungwonTaxInvoiceConverterModule,

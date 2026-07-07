@@ -61,7 +61,7 @@ export class DevSeedService implements OnApplicationBootstrap {
     this.logger.log(
       `Development admin ready: ${admin.loginId} / ${this.configService.get<string>(
         'DEV_ADMIN_PASSWORD',
-        'Admin1234!',
+        '00000000',
       )}`,
     );
   }
@@ -91,6 +91,9 @@ export class DevSeedService implements OnApplicationBootstrap {
       });
       if (!menu) {
         menu = await this.menuRepository.save(this.menuRepository.create(item));
+      } else {
+        await this.menuRepository.update({ id: menu.id }, item);
+        menu = await this.menuRepository.findOneOrFail({ where: { id: menu.id } });
       }
       menus.push(menu);
     }
@@ -117,11 +120,26 @@ export class DevSeedService implements OnApplicationBootstrap {
 
   private async seedAdminUser(companyId: number) {
     const loginId = this.configService.get<string>('DEV_ADMIN_LOGIN_ID', 'admin');
-    const password = this.configService.get<string>('DEV_ADMIN_PASSWORD', 'Admin1234!');
-    const existing = await this.userRepository.findOne({
-      where: { companyId, loginId },
-    });
-    if (existing) return existing;
+    const password = this.configService.get<string>('DEV_ADMIN_PASSWORD', '00000000');
+    const existing = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.companyId = :companyId', { companyId })
+      .andWhere('user.loginId = :loginId', { loginId })
+      .getOne();
+    if (existing) {
+      const passwordMatches = await bcrypt.compare(password, existing.password);
+      if (passwordMatches && existing.isActive) return existing;
+
+      await this.userRepository.update(
+        { id: existing.id, companyId },
+        {
+          password: passwordMatches ? existing.password : await bcrypt.hash(password, 10),
+          isActive: true,
+        },
+      );
+      return this.userRepository.findOneOrFail({ where: { id: existing.id, companyId } });
+    }
 
     return this.userRepository.save(
       this.userRepository.create({

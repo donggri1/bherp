@@ -1,4 +1,4 @@
-import { menuGroups } from "@/config/menus";
+import { getLeafMenuItems } from "@/config/menus";
 import type { MenuItem } from "@/types/menu";
 
 import type { MdiTab } from "../types/mdi-tab.types";
@@ -17,7 +17,7 @@ export const HOME_MENU: MenuItem = {
 };
 
 export function getRegisteredMenus() {
-  return [HOME_MENU, ...menuGroups.flatMap((group) => group.menus)];
+  return [HOME_MENU, ...getLeafMenuItems()];
 }
 
 export function getTabId(menu: MenuItem) {

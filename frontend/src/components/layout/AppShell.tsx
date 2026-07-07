@@ -55,7 +55,7 @@ export function AppShell({ children }: AppShellProps) {
                 <X className="size-5" aria-hidden />
               </Button>
             </div>
-            <div className="min-h-0 flex-1 space-y-6 overflow-auto">
+            <div className="min-h-0 flex-1 space-y-2 overflow-auto">
               {menuGroups.map((group) => (
                 <MenuGroup
                   key={group.menuGroupCode}
