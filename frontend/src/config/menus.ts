@@ -119,6 +119,31 @@ export const menuGroups: MenuGroup[] = [
     moduleCode: "PROJECT",
     title: "프로젝트/현장",
     menus: [
+      {
+        menuCode: "PROJECT_CORE",
+        moduleCode: "PROJECT",
+        title: "프로젝트",
+        children: [
+          {
+            menuCode: "OP_PROJECTS",
+            moduleCode: "PROJECT",
+            title: "프로젝트등록",
+            path: "/operation/projects",
+          },
+          {
+            menuCode: "OP_PROJECT_SITES",
+            moduleCode: "PROJECT",
+            title: "현장정보관리",
+            path: "/operation/project-sites",
+          },
+          {
+            menuCode: "OP_PROJECT_ASSIGNMENTS",
+            moduleCode: "PROJECT",
+            title: "현장인력배치",
+            path: "/operation/project-assignments",
+          },
+        ],
+      },
       ...(distributionWorkforceEnabled
         ? [
             {

@@ -74,3 +74,11 @@ export type EmployeeOrganizationHistory = {
   isCurrent: boolean;
   changeReason?: string | null;
 };
+
+export type EmployeeOrganizationHistoryForm = {
+  businessUnitId: string;
+  departmentId: string;
+  positionId: string;
+  effectiveFrom: string;
+  changeReason: string;
+};

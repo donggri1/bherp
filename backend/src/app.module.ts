@@ -24,6 +24,9 @@ import { HrDashboardModule } from './modules/hr-dashboard/hr-dashboard.module';
 import { MenusModule } from './modules/menus/menus.module';
 import { OrganizationChartModule } from './modules/organization-chart/organization-chart.module';
 import { PositionsModule } from './modules/positions/positions.module';
+import { ProjectAssignmentsModule } from './modules/project-assignments/project-assignments.module';
+import { ProjectSitesModule } from './modules/project-sites/project-sites.module';
+import { ProjectsModule } from './modules/projects/projects.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { SequencesModule } from './modules/sequences/sequences.module';
 import { UsersModule } from './modules/users/users.module';
@@ -51,6 +54,9 @@ import { UsersModule } from './modules/users/users.module';
     HrDashboardModule,
     OrganizationChartModule,
     EmployeeCertificatesModule,
+    ProjectsModule,
+    ProjectSitesModule,
+    ProjectAssignmentsModule,
     DistributionWorkforceModule,
     SungwonTaxInvoiceConverterModule,
     AppSettingsModule,

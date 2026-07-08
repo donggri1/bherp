@@ -49,20 +49,46 @@ function getDateAfter(days: number) {
 
 function getExpiryStatus(expiredDate?: string) {
   const date = toDate(expiredDate);
-  if (!date) return { label: "-", className: "text-muted-foreground" };
+  const baseClassName =
+    "inline-flex h-5 items-center rounded-sm border px-1.5 text-[11px] font-medium";
+  if (!date) {
+    return {
+      type: "missing" as const,
+      label: "미입력",
+      className: `${baseClassName} border-border bg-muted text-muted-foreground`,
+    };
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diffDays = Math.ceil((date.getTime() - today.getTime()) / 86400000);
 
-  if (diffDays < 0)
-    return { label: "만료", className: "text-destructive font-medium" };
-  if (diffDays <= 30)
+  if (diffDays < 0) {
     return {
-      label: `${diffDays}일 남음`,
-      className: "text-amber-600 font-medium",
+      type: "expired" as const,
+      label: `${Math.abs(diffDays)}일 경과`,
+      className: `${baseClassName} border-destructive/30 bg-destructive/10 text-destructive`,
     };
-  return { label: "유효", className: "text-emerald-700 font-medium" };
+  }
+  if (diffDays === 0) {
+    return {
+      type: "upcoming" as const,
+      label: "오늘 만료",
+      className: `${baseClassName} border-amber-300 bg-amber-50 text-amber-700`,
+    };
+  }
+  if (diffDays <= 30) {
+    return {
+      type: "upcoming" as const,
+      label: `D-${diffDays}`,
+      className: `${baseClassName} border-amber-300 bg-amber-50 text-amber-700`,
+    };
+  }
+  return {
+    type: "valid" as const,
+    label: "유효",
+    className: `${baseClassName} border-emerald-300 bg-emerald-50 text-emerald-700`,
+  };
 }
 
 function getWorkHoursClassName(
@@ -127,6 +153,39 @@ export function EmployeeCertificateInquiryManager({
         .includes(keyword);
     });
   }, [employeeKeyword, employeeMap, items]);
+
+  const resultSummary = useMemo(() => {
+    const summary = {
+      total: filteredItems.length,
+      expired: 0,
+      upcoming: 0,
+      valid: 0,
+      missing: 0,
+    };
+
+    for (const item of filteredItems) {
+      const status = getExpiryStatus(item.expiredDate);
+      if (status.type === "expired") summary.expired += 1;
+      if (status.type === "upcoming") summary.upcoming += 1;
+      if (status.type === "valid") summary.valid += 1;
+      if (status.type === "missing") summary.missing += 1;
+    }
+
+    return summary;
+  }, [filteredItems]);
+
+  const searchSummary = useMemo(() => {
+    const certificateTypeText = certificateTypeIds.length
+      ? `${certificateTypeIds.length}개 자격증`
+      : "전체 자격증";
+    const dateText =
+      expiredDateFrom || expiredDateTo
+        ? `${expiredDateFrom || "시작일 없음"} ~ ${expiredDateTo || "종료일 없음"}`
+        : "만료일 전체";
+    const activeText =
+      isActive === "" ? "전체" : isActive === "true" ? "사용" : "미사용";
+    return `${certificateTypeText} · ${dateText} · ${activeText}`;
+  }, [certificateTypeIds.length, expiredDateFrom, expiredDateTo, isActive]);
 
   const loadRefs = async () => {
     const [employeeResult, certificateTypeResult] = await Promise.all([
@@ -272,6 +331,9 @@ export function EmployeeCertificateInquiryManager({
               조회
             </Button>
           </div>
+          <div className="rounded-md bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            조회 기준: {searchSummary}
+          </div>
         </CardContent>
       </Card>
 
@@ -287,6 +349,38 @@ export function EmployeeCertificateInquiryManager({
             {expiryStatusMode ? "만료 현황" : "조회결과"}{" "}
             {filteredItems.length}건 / 전체 {total}건
           </CardTitle>
+          <div className="grid gap-2 pt-1 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="rounded-md bg-muted/30 px-3 py-2">
+              <div className="text-xs text-muted-foreground">조회결과</div>
+              <div className="mt-1 text-sm font-semibold tabular-nums">
+                {resultSummary.total}
+              </div>
+            </div>
+            <div className="rounded-md bg-destructive/10 px-3 py-2">
+              <div className="text-xs text-destructive">만료</div>
+              <div className="mt-1 text-sm font-semibold text-destructive tabular-nums">
+                {resultSummary.expired}
+              </div>
+            </div>
+            <div className="rounded-md bg-amber-50 px-3 py-2">
+              <div className="text-xs text-amber-700">임박</div>
+              <div className="mt-1 text-sm font-semibold text-amber-700 tabular-nums">
+                {resultSummary.upcoming}
+              </div>
+            </div>
+            <div className="rounded-md bg-emerald-50 px-3 py-2">
+              <div className="text-xs text-emerald-700">유효</div>
+              <div className="mt-1 text-sm font-semibold text-emerald-700 tabular-nums">
+                {resultSummary.valid}
+              </div>
+            </div>
+            <div className="rounded-md bg-muted/30 px-3 py-2">
+              <div className="text-xs text-muted-foreground">미입력</div>
+              <div className="mt-1 text-sm font-semibold tabular-nums">
+                {resultSummary.missing}
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="max-h-[560px] overflow-auto p-0">
           <Table className="min-w-[1180px]">
@@ -319,7 +413,17 @@ export function EmployeeCertificateInquiryManager({
                     certificateType?.certificateTypeName;
 
                   return (
-                    <TableRow key={item.id}>
+                    <TableRow
+                      key={item.id}
+                      className={cn(
+                        expiryStatusMode &&
+                          expiryStatus.type === "expired" &&
+                          "bg-destructive/5",
+                        expiryStatusMode &&
+                          expiryStatus.type === "upcoming" &&
+                          "bg-amber-50/50",
+                      )}
+                    >
                       <TableCell>
                         <div className="whitespace-nowrap font-medium">
                           {employee?.employeeName ?? "-"}
@@ -357,8 +461,10 @@ export function EmployeeCertificateInquiryManager({
                       <TableCell className="whitespace-nowrap">
                         {item.memo ?? "-"}
                       </TableCell>
-                      <TableCell className={cn("whitespace-nowrap", expiryStatus.className)}>
-                        {expiryStatus.label}
+                      <TableCell className="whitespace-nowrap">
+                        <span className={expiryStatus.className}>
+                          {expiryStatus.label}
+                        </span>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">{item.isActive ? "사용" : "미사용"}</TableCell>
                     </TableRow>

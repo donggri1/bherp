@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Eye, EyeOff, Upload } from "lucide-react";
+import { Download, Eye, EyeOff, Plus, Save, Upload, X } from "lucide-react";
 
 import { ActionButtons } from "@/components/common/ActionButtons";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -28,6 +28,7 @@ import type { ManagedUser } from "@/features/operation/users/types/user-manageme
 import { cn } from "@/lib/utils";
 import {
   createEmployee,
+  createEmployeeOrganizationHistory,
   deleteEmployee,
   downloadEmployeeImportTemplate,
   getEmployeeOrganizationHistories,
@@ -35,7 +36,12 @@ import {
   importEmployeesFromExcel,
   updateEmployee,
 } from "../api/employees.api";
-import type { Employee, EmployeeForm, EmployeeOrganizationHistory } from "../types/employee.types";
+import type {
+  Employee,
+  EmployeeForm,
+  EmployeeOrganizationHistory,
+  EmployeeOrganizationHistoryForm,
+} from "../types/employee.types";
 
 const emptyForm: EmployeeForm = {
   employeeCode: "",
@@ -92,6 +98,10 @@ function formatDate(value?: string | null) {
   return value || "-";
 }
 
+function todayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function DetailSection({
   title,
   children,
@@ -120,6 +130,15 @@ export function EmployeesManager() {
   const [organizationHistories, setOrganizationHistories] = useState<
     EmployeeOrganizationHistory[]
   >([]);
+  const [isOrganizationHistoryFormOpen, setIsOrganizationHistoryFormOpen] = useState(false);
+  const [organizationHistoryForm, setOrganizationHistoryForm] =
+    useState<EmployeeOrganizationHistoryForm>({
+      businessUnitId: "",
+      departmentId: "",
+      positionId: "",
+      effectiveFrom: todayDate(),
+      changeReason: "",
+    });
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [form, setForm] = useState<EmployeeForm>(emptyForm);
   const [keyword, setKeyword] = useState("");
@@ -167,6 +186,16 @@ export function EmployeesManager() {
     setOrganizationHistories(histories);
   };
 
+  const resetOrganizationHistoryForm = (employeeForm: EmployeeForm) => {
+    setOrganizationHistoryForm({
+      businessUnitId: employeeForm.businessUnitId,
+      departmentId: employeeForm.departmentId,
+      positionId: employeeForm.positionId,
+      effectiveFrom: todayDate(),
+      changeReason: "",
+    });
+  };
+
   const loadItems = async (options: { departmentId?: string; employeeId?: number } = {}) => {
     setLoading(true);
     setMessage("");
@@ -184,13 +213,18 @@ export function EmployeesManager() {
         ? result.items.find((item) => item.id === options.employeeId)
         : null;
       if (requestedEmployee) {
+        const nextForm = toForm(requestedEmployee);
         setSelectedId(requestedEmployee.id);
-        setForm(toForm(requestedEmployee));
+        setForm(nextForm);
+        resetOrganizationHistoryForm(nextForm);
+        setIsOrganizationHistoryFormOpen(false);
         setIsResidentRegistrationNumberVisible(false);
         await loadOrganizationHistories(requestedEmployee.id);
       } else if (selectedId && !result.items.some((item) => item.id === selectedId)) {
         setSelectedId(null);
         setForm(emptyForm);
+        resetOrganizationHistoryForm(emptyForm);
+        setIsOrganizationHistoryFormOpen(false);
         setOrganizationHistories([]);
         setIsResidentRegistrationNumberVisible(true);
       }
@@ -251,8 +285,11 @@ export function EmployeesManager() {
   };
 
   const handleSelect = (item: Employee) => {
+    const nextForm = toForm(item);
     setSelectedId(item.id);
-    setForm(toForm(item));
+    setForm(nextForm);
+    resetOrganizationHistoryForm(nextForm);
+    setIsOrganizationHistoryFormOpen(false);
     void loadOrganizationHistories(item.id).catch((error) => {
       setMessage(error instanceof Error ? error.message : "조직/직위 이력 조회에 실패했습니다.");
       if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
@@ -269,6 +306,12 @@ export function EmployeesManager() {
       departmentId: departmentFilter,
       departmentName: department?.departmentName ?? "",
     });
+    resetOrganizationHistoryForm({
+      ...emptyForm,
+      departmentId: departmentFilter,
+      departmentName: department?.departmentName ?? "",
+    });
+    setIsOrganizationHistoryFormOpen(false);
     setOrganizationHistories([]);
     setIsResidentRegistrationNumberVisible(true);
     setMessage("");
@@ -284,8 +327,11 @@ export function EmployeesManager() {
     setMessage("");
     try {
       const saved = selectedId ? await updateEmployee(selectedId, form) : await createEmployee(form);
+      const nextForm = toForm(saved);
       setSelectedId(saved.id);
-      setForm(toForm(saved));
+      setForm(nextForm);
+      resetOrganizationHistoryForm(nextForm);
+      setIsOrganizationHistoryFormOpen(false);
       await loadOrganizationHistories(saved.id);
       setIsResidentRegistrationNumberVisible(false);
       setMessage("저장되었습니다.");
@@ -310,6 +356,8 @@ export function EmployeesManager() {
       await deleteEmployee(selectedId);
       setSelectedId(null);
       setForm(emptyForm);
+      resetOrganizationHistoryForm(emptyForm);
+      setIsOrganizationHistoryFormOpen(false);
       setOrganizationHistories([]);
       setIsResidentRegistrationNumberVisible(true);
       setMessage("삭제되었습니다.");
@@ -374,6 +422,61 @@ export function EmployeesManager() {
       );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "사원 엑셀 등록에 실패했습니다.");
+      if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOrganizationHistoryChange = <K extends keyof EmployeeOrganizationHistoryForm>(
+    key: K,
+    value: EmployeeOrganizationHistoryForm[K],
+  ) => {
+    setOrganizationHistoryForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleOpenOrganizationHistoryForm = () => {
+    if (!selectedId) {
+      setMessage("이력을 추가할 사원을 선택하세요.");
+      return;
+    }
+    resetOrganizationHistoryForm(form);
+    setIsOrganizationHistoryFormOpen(true);
+  };
+
+  const handleCreateOrganizationHistory = async () => {
+    if (!selectedId) {
+      setMessage("이력을 추가할 사원을 선택하세요.");
+      return;
+    }
+    if (!organizationHistoryForm.effectiveFrom) {
+      setMessage("적용일은 필수입니다.");
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+    try {
+      const savedHistory = await createEmployeeOrganizationHistory(
+        selectedId,
+        organizationHistoryForm,
+      );
+      const nextForm: EmployeeForm = {
+        ...form,
+        businessUnitId: savedHistory.businessUnitId ? String(savedHistory.businessUnitId) : "",
+        departmentId: savedHistory.departmentId ? String(savedHistory.departmentId) : "",
+        departmentName: savedHistory.departmentName ?? "",
+        positionId: savedHistory.positionId ? String(savedHistory.positionId) : "",
+        positionName: savedHistory.positionName ?? "",
+      };
+      setForm(nextForm);
+      resetOrganizationHistoryForm(nextForm);
+      setIsOrganizationHistoryFormOpen(false);
+      await loadOrganizationHistories(selectedId);
+      await loadItems();
+      setMessage("조직/직위 이력이 등록되었습니다.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "조직/직위 이력 등록에 실패했습니다.");
       if (error instanceof Error && error.message.includes("로그인")) router.push("/login");
     } finally {
       setLoading(false);
@@ -586,10 +689,132 @@ export function EmployeesManager() {
                 <div className="space-y-2 rounded-md border bg-muted/20 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold">조직/직위 이력</span>
-                    <span className="text-xs text-muted-foreground">
-                      최근 {organizationHistories.slice(0, 5).length}건
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        최근 {organizationHistories.slice(0, 5).length}건
+                      </span>
+                      {isOrganizationHistoryFormOpen ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          aria-label="이력 추가 닫기"
+                          title="이력 추가 닫기"
+                          onClick={() => setIsOrganizationHistoryFormOpen(false)}
+                        >
+                          <X className="size-3" aria-hidden />
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="xs"
+                          onClick={handleOpenOrganizationHistoryForm}
+                          disabled={loading}
+                        >
+                          <Plus className="size-3" aria-hidden />
+                          이력 추가
+                        </Button>
+                      )}
+                    </div>
                   </div>
+                  {isOrganizationHistoryFormOpen ? (
+                    <div className="grid gap-3 rounded-md border bg-background p-3">
+                      <label className="space-y-1.5 text-xs font-medium">
+                        사업단위
+                        <select
+                          className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
+                          value={organizationHistoryForm.businessUnitId}
+                          onChange={(event) =>
+                            handleOrganizationHistoryChange("businessUnitId", event.target.value)
+                          }
+                        >
+                          <option value="">선택 안 함</option>
+                          {businessUnits.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.businessUnitName}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="space-y-1.5 text-xs font-medium">
+                          부서
+                          <select
+                            className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
+                            value={organizationHistoryForm.departmentId}
+                            onChange={(event) =>
+                              handleOrganizationHistoryChange("departmentId", event.target.value)
+                            }
+                          >
+                            <option value="">선택 안 함</option>
+                            {departments.map((department) => (
+                              <option key={department.id} value={department.id}>
+                                {department.departmentName}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="space-y-1.5 text-xs font-medium">
+                          직위
+                          <select
+                            className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
+                            value={organizationHistoryForm.positionId}
+                            onChange={(event) =>
+                              handleOrganizationHistoryChange("positionId", event.target.value)
+                            }
+                          >
+                            <option value="">선택 안 함</option>
+                            {positions.map((position) => (
+                              <option key={position.id} value={position.id}>
+                                {position.positionName}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                      <label className="space-y-1.5 text-xs font-medium">
+                        적용일
+                        <Input
+                          type="date"
+                          value={organizationHistoryForm.effectiveFrom}
+                          onChange={(event) =>
+                            handleOrganizationHistoryChange("effectiveFrom", event.target.value)
+                          }
+                        />
+                      </label>
+                      <label className="space-y-1.5 text-xs font-medium">
+                        변경사유
+                        <Input
+                          value={organizationHistoryForm.changeReason}
+                          onChange={(event) =>
+                            handleOrganizationHistoryChange("changeReason", event.target.value)
+                          }
+                        />
+                      </label>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="xs"
+                          onClick={() => setIsOrganizationHistoryFormOpen(false)}
+                          disabled={loading}
+                        >
+                          <X className="size-3" aria-hidden />
+                          취소
+                        </Button>
+                        <Button
+                          type="button"
+                          size="xs"
+                          onClick={handleCreateOrganizationHistory}
+                          disabled={loading}
+                        >
+                          <Save className="size-3" aria-hidden />
+                          등록
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
                   {organizationHistories.length ? (
                     <div className="space-y-2">
                       {organizationHistories.slice(0, 5).map((history) => (
@@ -622,7 +847,7 @@ export function EmployeesManager() {
                     </div>
                   ) : (
                     <div className="rounded-md border border-dashed bg-background px-3 py-2 text-xs text-muted-foreground">
-                      이력 데이터가 없습니다. 백필 실행 후 현재 조직/직위가 이력으로 남습니다.
+                      조회된 이력이 없습니다.
                     </div>
                   )}
                 </div>

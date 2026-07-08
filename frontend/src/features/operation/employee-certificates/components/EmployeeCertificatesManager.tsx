@@ -65,6 +65,78 @@ function employeeLabel(item: Employee) {
   return `${item.employeeName} (${item.employeeCode})`;
 }
 
+function toLocalDate(value?: string) {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getExpiryStatus(expiredDate?: string) {
+  const date = toLocalDate(expiredDate);
+  const baseClassName =
+    "inline-flex h-5 items-center rounded-sm border px-1.5 text-[11px] font-medium";
+  if (!date) {
+    return {
+      label: "미입력",
+      className: `${baseClassName} border-border bg-muted text-muted-foreground`,
+    };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.ceil((date.getTime() - today.getTime()) / 86400000);
+
+  if (diffDays < 0) {
+    return {
+      label: `${Math.abs(diffDays)}일 경과`,
+      className: `${baseClassName} border-destructive/30 bg-destructive/10 text-destructive`,
+    };
+  }
+  if (diffDays === 0) {
+    return {
+      label: "오늘 만료",
+      className: `${baseClassName} border-amber-300 bg-amber-50 text-amber-700`,
+    };
+  }
+  if (diffDays <= 30) {
+    return {
+      label: `D-${diffDays}`,
+      className: `${baseClassName} border-amber-300 bg-amber-50 text-amber-700`,
+    };
+  }
+  return {
+    label: "유효",
+    className: `${baseClassName} border-emerald-300 bg-emerald-50 text-emerald-700`,
+  };
+}
+
+function getEmployeeStatus(employee?: Employee | null) {
+  const baseClassName =
+    "inline-flex h-5 items-center rounded-sm border px-1.5 text-[11px] font-medium";
+  if (!employee) {
+    return {
+      label: "-",
+      className: `${baseClassName} border-border bg-muted text-muted-foreground`,
+    };
+  }
+  if (!employee.isActive) {
+    return {
+      label: "미사용",
+      className: `${baseClassName} border-border bg-muted text-muted-foreground`,
+    };
+  }
+  if (employee.resignDate) {
+    return {
+      label: "퇴사",
+      className: `${baseClassName} border-amber-300 bg-amber-50 text-amber-700`,
+    };
+  }
+  return {
+    label: "재직",
+    className: `${baseClassName} border-emerald-300 bg-emerald-50 text-emerald-700`,
+  };
+}
+
 export function EmployeeCertificatesManager() {
   const router = useRouter();
   const [items, setItems] = useState<EmployeeCertificate[]>([]);
@@ -106,6 +178,11 @@ export function EmployeeCertificatesManager() {
       new Map(certificateTypes.map((item) => [item.id, item.issuer ?? "-"])),
     [certificateTypes],
   );
+  const selectedEmployeeStatus = getEmployeeStatus(selectedEmployee);
+  const selectedFormCertificateType = form.certificateTypeId
+    ? certificateTypeMap.get(Number(form.certificateTypeId))
+    : null;
+  const selectedFormExpiryStatus = getExpiryStatus(form.expiredDate);
 
   const loadEmployees = async (keyword = employeeKeyword) => {
     setEmployeeLoading(true);
@@ -310,6 +387,38 @@ export function EmployeeCertificatesManager() {
               </Button>
             </div>
 
+            {selectedEmployee ? (
+              <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold">
+                      {selectedEmployee.employeeName}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {selectedEmployee.employeeCode}
+                    </div>
+                  </div>
+                  <span className={selectedEmployeeStatus.className}>
+                    {selectedEmployeeStatus.label}
+                  </span>
+                </div>
+                <div className="mt-2 grid gap-1 text-xs text-muted-foreground">
+                  <div className="flex justify-between gap-2">
+                    <span>부서</span>
+                    <span className="truncate text-foreground">
+                      {selectedEmployee.departmentName ?? "-"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span>직위</span>
+                    <span className="truncate text-foreground">
+                      {selectedEmployee.positionName ?? "-"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
             <div className="max-h-[560px] overflow-auto rounded-md border">
               <Table>
                 <TableHeader>
@@ -367,12 +476,33 @@ export function EmployeeCertificatesManager() {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_260px]">
                 <div className="rounded-md border bg-muted/30 px-4 py-3 text-sm">
-                  <div className="text-muted-foreground">선택 사원</div>
-                  <div className="mt-1 font-medium">
-                    {selectedEmployee
-                      ? employeeLabel(selectedEmployee)
-                      : "사원을 선택하세요."}
-                  </div>
+                  {selectedEmployee ? (
+                    <div className="grid gap-2 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto]">
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">선택 사원</div>
+                        <div className="mt-1 truncate font-medium">
+                          {employeeLabel(selectedEmployee)}
+                        </div>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">부서/직위</div>
+                        <div className="mt-1 truncate font-medium">
+                          {selectedEmployee.departmentName ?? "-"} /{" "}
+                          {selectedEmployee.positionName ?? "-"}
+                        </div>
+                      </div>
+                      <div className="flex items-end">
+                        <span className={selectedEmployeeStatus.className}>
+                          {selectedEmployeeStatus.label}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-muted-foreground">선택 사원</div>
+                      <div className="mt-1 font-medium">사원을 선택하세요.</div>
+                    </>
+                  )}
                 </div>
                 <label className="space-y-2 text-sm font-medium">
                   자격증 종류
@@ -418,7 +548,7 @@ export function EmployeeCertificatesManager() {
                 <CardTitle>보유 자격증</CardTitle>
               </CardHeader>
               <CardContent className="max-h-[460px] overflow-auto p-0">
-                <Table className="min-w-[920px]">
+                <Table className="min-w-[1020px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-36 whitespace-nowrap">
@@ -440,6 +570,9 @@ export function EmployeeCertificatesManager() {
                         만료일
                       </TableHead>
                       <TableHead className="w-24 whitespace-nowrap">
+                        만료상태
+                      </TableHead>
+                      <TableHead className="w-24 whitespace-nowrap">
                         자격상태
                       </TableHead>
                       <TableHead className="w-20 whitespace-nowrap text-right">
@@ -452,51 +585,59 @@ export function EmployeeCertificatesManager() {
                   </TableHeader>
                   <TableBody>
                     {items.length ? (
-                      items.map((item) => (
-                        <TableRow
-                          key={item.id}
-                          className={cn(
-                            "cursor-pointer",
-                            selectedId === item.id && "bg-muted",
-                          )}
-                          onClick={() => handleSelect(item)}
-                        >
-                          <TableCell className="whitespace-nowrap font-medium">
-                            {certificateTypeMap.get(item.certificateTypeId) ??
-                              "-"}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            {item.certificateNo ?? "-"}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            {certificateTypeIssuerMap.get(
-                              item.certificateTypeId,
-                            ) ?? "-"}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            {item.acquiredDate ?? "-"}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            {item.renewedDate ?? "-"}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            {item.expiredDate ?? "-"}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            {item.qualificationStatus ?? "-"}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-right tabular-nums">
-                            {item.workHours ?? "-"}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap">
-                            {item.isActive ? "사용" : "미사용"}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      items.map((item) => {
+                        const expiryStatus = getExpiryStatus(item.expiredDate);
+                        return (
+                          <TableRow
+                            key={item.id}
+                            className={cn(
+                              "cursor-pointer",
+                              selectedId === item.id && "bg-muted",
+                            )}
+                            onClick={() => handleSelect(item)}
+                          >
+                            <TableCell className="whitespace-nowrap font-medium">
+                              {certificateTypeMap.get(item.certificateTypeId) ??
+                                "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {item.certificateNo ?? "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {certificateTypeIssuerMap.get(
+                                item.certificateTypeId,
+                              ) ?? "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {item.acquiredDate ?? "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {item.renewedDate ?? "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {item.expiredDate ?? "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              <span className={expiryStatus.className}>
+                                {expiryStatus.label}
+                              </span>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {item.qualificationStatus ?? "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap text-right tabular-nums">
+                              {item.workHours ?? "-"}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {item.isActive ? "사용" : "미사용"}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     ) : (
                       <TableRow>
                         <TableCell
-                          colSpan={9}
+                          colSpan={10}
                           className="h-24 text-center text-muted-foreground"
                         >
                           {selectedEmployeeId
@@ -512,13 +653,27 @@ export function EmployeeCertificatesManager() {
 
             <Card>
               <CardHeader>
-                <CardTitle>상세</CardTitle>
+                <CardTitle>자격증 상세</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-                <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm lg:col-span-2 2xl:col-span-3">
-                  {selectedEmployee
-                    ? employeeLabel(selectedEmployee)
-                    : "사원 미선택"}
+                <div className="grid gap-3 rounded-md border bg-muted/30 px-3 py-3 text-sm lg:col-span-2 2xl:col-span-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto]">
+                  <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground">대상 사원</div>
+                    <div className="mt-1 truncate font-medium">
+                      {selectedEmployee ? employeeLabel(selectedEmployee) : "사원 미선택"}
+                    </div>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs text-muted-foreground">자격증</div>
+                    <div className="mt-1 truncate font-medium">
+                      {selectedFormCertificateType ?? "자격증 종류 미선택"}
+                    </div>
+                  </div>
+                  <div className="flex items-end">
+                    <span className={selectedFormExpiryStatus.className}>
+                      {selectedFormExpiryStatus.label}
+                    </span>
+                  </div>
                 </div>
                 <label className="space-y-2 text-sm font-medium">
                   자격증 종류

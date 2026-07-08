@@ -82,6 +82,27 @@ export const initialMenus: Partial<Menu>[] = [
     path: '/operation/certificate-expiry-status',
     sortOrder: 6,
   },
+  {
+    menuCode: 'OP_PROJECTS',
+    menuName: '프로젝트등록',
+    menuGroupCode: 'PROJECT_FIELD',
+    path: '/operation/projects',
+    sortOrder: 1,
+  },
+  {
+    menuCode: 'OP_PROJECT_SITES',
+    menuName: '현장정보관리',
+    menuGroupCode: 'PROJECT_FIELD',
+    path: '/operation/project-sites',
+    sortOrder: 2,
+  },
+  {
+    menuCode: 'OP_PROJECT_ASSIGNMENTS',
+    menuName: '현장인력배치',
+    menuGroupCode: 'PROJECT_FIELD',
+    path: '/operation/project-assignments',
+    sortOrder: 3,
+  },
   ...(distributionWorkforceEnabled
     ? [
         {
@@ -89,7 +110,7 @@ export const initialMenus: Partial<Menu>[] = [
           menuName: '배전인력',
           menuGroupCode: 'PROJECT_FIELD',
           path: '/operation/distribution-workforce',
-          sortOrder: 1,
+          sortOrder: 4,
         },
       ]
     : []),

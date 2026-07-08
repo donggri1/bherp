@@ -15,8 +15,7 @@
    - ERP 모듈/메뉴 작업: `ERP_MODULE_SEPARATION_MENU_PLAN.md`
    - 메뉴 검색: `MENU_SEARCH_FEATURE_PLAN.md`
    - MDI 탭: `MDI_TAB_LAYOUT_DESIGN.md`
-   - 배전인력: `DISTRIBUTION_WORKFORCE_PLAN.md`
-   - 성원 세금계산서: `SUNGWON_TAX_INVOICE_CONVERSION_PLAN.md`
+   - 회사전용 기능 확인이 필요할 때만: `DISTRIBUTION_WORKFORCE_PLAN.md`, `SUNGWON_TAX_INVOICE_CONVERSION_PLAN.md`
 5. 실제 변경 대상 코드
 
 ## 2. 현재 활성 에픽
@@ -24,16 +23,178 @@
 | 항목 | 내용 |
 | --- | --- |
 | 활성 에픽 | ERP 모듈 분리 및 메뉴 구조 정리 |
-| 현재 차수 | 1차: 인사/자격 모듈 정리 |
-| 우선 착수 | 조직/직위 이력 관리 UI 2단계 |
-| 첫 업무 모듈 | 1차: 인사/자격 |
+| 현재 차수 | 2차: 프로젝트/현장 모듈 도입 |
+| 우선 착수 | 프로젝트등록/현장정보관리/현장인력배치 1단계 CRUD 완료, 다음은 계약관리 또는 발주처/담당자관리 |
+| 첫 업무 모듈 | 2차: 프로젝트/현장 |
 | 장기 계획 문서 | `ERP_MODULE_SEPARATION_MENU_PLAN.md` |
-| 상태 | 0차 메뉴/탐색 정리 완료, 1차 `자격만료현황`·`인사현황`·사원 FK 백필·`부서조직도` 사원 배치·사원 개인정보 표시 정책·사원 프로필 섹션화·조직/직위 이력 1단계 완료 |
+| 상태 | 0차 메뉴/탐색 정리 완료, 1차 인사/조직 기반 정리 완료, 자격증은 보조 기능으로 유지, 프로젝트/현장 기본 CRUD 3개 완료 |
 
 ## 3. 최근 완료 내용
 
 ### 2026-07-08
 
+- 프로젝트/현장 2차 세 번째 화면 `현장인력배치` 1단계 CRUD 완료
+  - 신규 메뉴 코드: `OP_PROJECT_ASSIGNMENTS`
+  - 신규 화면: `/operation/project-assignments`
+  - 신규 API: `/api/project-assignments`
+  - `backend/src/modules/project-assignments/*`
+    - `ProjectAssignment` 엔티티 추가
+    - 프로젝트 FK, 현장 FK nullable, 사원 FK, 역할, 시작일, 종료일, 배치상태, 메모, 사용여부, 정렬순서 관리
+    - 프로젝트는 필수, 현장은 선택으로 설계
+    - 현장을 선택한 경우 해당 현장이 선택 프로젝트에 속하는지 백엔드에서 검증
+    - `@MenuCode('OP_PROJECT_ASSIGNMENTS')`, `read/create/update/delete` 권한 적용
+  - `backend/src/app.module.ts`
+    - `ProjectAssignmentsModule` 등록
+  - `backend/src/modules/menus/menus.seed.ts`
+    - `PROJECT_FIELD` 그룹에 `현장인력배치` 메뉴 추가
+    - `배전인력`은 같은 그룹 4번으로 유지
+  - `frontend/src/features/operation/project-assignments/*`
+    - 배치 API 클라이언트, 타입, `ProjectAssignmentsManager` 추가
+    - 검색조건: 검색어, 프로젝트, 현장, 상태, 사용여부
+    - 목록: 프로젝트, 현장, 사원, 부서/직위, 역할, 기간, 상태, 사용여부
+    - 상세: 프로젝트, 현장, 사원, 역할, 시작일/종료일, 상태, 메모
+  - `frontend/src/config/menus.ts`
+    - `프로젝트/현장 > 프로젝트 > 현장인력배치` 메뉴 추가
+  - 검증
+    - `cd backend && npm run build`: 성공
+    - `cd frontend && npm run build`: 성공, `/operation/project-assignments` route 확인
+    - `cd frontend && npm run lint`: 성공
+    - 백엔드 재기동: PID `3408`, 4000번 실행 중
+    - `POST /api/auth/login`: `admin` / `00000000` 성공, 권한 수 19
+    - `/api/menus?page=1&limit=100`: `OP_PROJECT_ASSIGNMENTS|PROJECT_FIELD|/operation/project-assignments` 확인
+    - 검증 사원: `이진수`, `EMP-000007`
+    - `POST /api/projects`: 현장인력배치 검증용 프로젝트 `PRJ-000003` 생성
+    - `POST /api/project-sites`: 검증용 현장 `SITE-000002` 생성
+    - `POST /api/project-assignments`: 성공, 검증 배치 id 1 생성
+    - `PATCH /api/project-assignments/:id`: 성공, 상태 `assigned` 반영
+    - `/api/project-assignments?page=1&limit=20&projectId=:id&projectSiteId=:id`: 성공, total 1
+    - `DELETE /api/project-assignments/:id`: 성공, affected 1
+    - `DELETE /api/project-sites/:id`: 성공, affected 1
+    - `DELETE /api/projects/:id`: 성공, affected 1
+    - 삭제 후 `/api/project-assignments?page=1&limit=20`: total 0
+- 프로젝트/현장 2차 두 번째 화면 `현장정보관리` 1단계 CRUD 완료
+  - 신규 메뉴 코드: `OP_PROJECT_SITES`
+  - 신규 화면: `/operation/project-sites`
+  - 신규 API: `/api/project-sites`
+  - 신규 자동채번: `PROJECT_SITE` -> `SITE-000001`
+  - `backend/src/modules/project-sites/*`
+    - `ProjectSite` 엔티티 추가
+    - 프로젝트 FK, 현장코드, 현장명, 현장주소, 담당자, 연락처, 기간, 상태, 메모, 사용여부, 정렬순서 관리
+    - 프로젝트와 현장은 1:N 구조로 설계
+    - `@MenuCode('OP_PROJECT_SITES')`, `read/create/update/delete` 권한 적용
+  - `backend/src/app.module.ts`
+    - `ProjectSitesModule` 등록
+  - `backend/src/modules/menus/menus.seed.ts`
+    - `PROJECT_FIELD` 그룹에 `현장정보관리` 메뉴 추가
+    - `배전인력`은 같은 그룹 3번으로 유지
+  - `backend/src/database/seeds/dev-seed.service.ts`
+    - `PROJECT_SITE` 채번 규칙 seed 추가
+  - `frontend/src/features/operation/project-sites/*`
+    - 현장 API 클라이언트, 타입, `ProjectSitesManager` 추가
+    - 검색조건: 검색어, 프로젝트, 상태, 사용여부
+    - 목록: 현장코드, 프로젝트, 현장명, 담당자, 연락처, 기간, 상태, 사용여부
+    - 상세: 프로젝트, 현장명/주소, 담당자/연락처, 기간, 상태/메모
+  - `frontend/src/config/menus.ts`
+    - `프로젝트/현장 > 프로젝트 > 현장정보관리` 메뉴 추가
+  - 검증
+    - `cd backend && npm run build`: 성공
+    - `cd frontend && npm run build`: 성공, `/operation/project-sites` route 확인
+    - `cd frontend && npm run lint`: 성공
+    - 백엔드 재기동: PID `38116`, 4000번 실행 중
+    - `POST /api/auth/login`: `admin` / `00000000` 성공, 권한 수 18
+    - `/api/menus?page=1&limit=100`: `OP_PROJECT_SITES|PROJECT_FIELD|/operation/project-sites` 확인
+    - `POST /api/projects`: 현장 검증용 프로젝트 `PRJ-000002` 생성
+    - `POST /api/project-sites`: 성공, 검증 데이터 `SITE-000001` 생성
+    - `PATCH /api/project-sites/:id`: 성공, 상태 `in_progress` 반영
+    - `/api/project-sites?page=1&limit=20&projectId=:id`: 성공, total 1
+    - `DELETE /api/project-sites/:id`: 성공, affected 1
+    - `DELETE /api/projects/:id`: 성공, affected 1
+    - 삭제 후 `/api/project-sites?page=1&limit=20`: total 0
+- 프로젝트/현장 2차 첫 화면 `프로젝트등록` 1단계 CRUD 완료
+  - 신규 메뉴 코드: `OP_PROJECTS`
+  - 신규 화면: `/operation/projects`
+  - 신규 API: `/api/projects`
+  - 신규 자동채번: `PROJECT` -> `PRJ-000001`
+  - `backend/src/modules/projects/*`
+    - `Project` 엔티티 추가
+    - 프로젝트코드, 공사번호, 프로젝트명, 발주처, 현장주소, 시작일, 종료일, 상태, 메모, 사용여부, 정렬순서 관리
+    - `@MenuCode('OP_PROJECTS')`, `read/create/update/delete` 권한 적용
+  - `backend/src/app.module.ts`
+    - `ProjectsModule` 등록
+  - `backend/src/modules/menus/menus.seed.ts`
+    - `PROJECT_FIELD` 그룹에 `프로젝트등록` 메뉴 추가
+    - `배전인력`은 같은 그룹 2번으로 유지
+  - `backend/src/database/seeds/dev-seed.service.ts`
+    - `PROJECT` 채번 규칙 seed 추가
+  - `frontend/src/features/operation/projects/*`
+    - 프로젝트 API 클라이언트, 타입, `ProjectsManager` 추가
+    - 검색조건: 검색어, 상태, 사용여부
+    - 목록: 프로젝트코드, 공사번호, 프로젝트명, 발주처, 기간, 상태, 사용여부
+    - 상세: 기본정보, 현장/기간, 상태/메모
+  - `frontend/src/config/menus.ts`
+    - `프로젝트/현장 > 프로젝트 > 프로젝트등록` 메뉴 추가
+  - 검증
+    - `cd backend && npm run build`: 성공
+    - `cd frontend && npm run build`: 성공, `/operation/projects` route 확인
+    - `cd frontend && npm run lint`: 성공
+    - `git diff --check`: CRLF 경고만 있음
+    - 백엔드 재기동: PID `16828`, 4000번 실행 중
+    - `POST /api/auth/login`: `admin` / `00000000` 성공, 권한 수 17
+    - `/api/menus?page=1&limit=100`: `OP_PROJECTS|PROJECT_FIELD|/operation/projects` 확인
+    - `/api/projects?page=1&limit=20`: 성공, total 0
+    - `POST /api/projects`: 성공, 검증 데이터 `PRJ-000001` 생성
+    - `PATCH /api/projects/:id`: 성공, 상태 `in_progress` 반영
+    - `DELETE /api/projects/:id`: 성공, affected 1
+    - 삭제 후 `/api/projects?page=1&limit=20`: total 0
+- 사원자격증조회/자격만료현황 UX 정리 완료
+  - `frontend/src/features/operation/employee-certificates/components/EmployeeCertificateInquiryManager.tsx`
+    - 만료상태 표시 기준을 사원별자격증등록 화면과 맞춤
+      - 미입력, 유효, D-n, 오늘 만료, n일 경과
+    - 결과 상단에 조회결과, 만료, 임박, 유효, 미입력 요약 추가
+    - 검색조건 하단에 현재 조회 기준 요약 추가
+    - 결과 테이블의 만료상태를 배지로 표시
+    - 자격만료현황 모드에서는 만료/임박 행이 더 눈에 띄도록 배경 강조
+    - 기존 `inquiry`, `expiry-status` 모드와 API 계약은 유지
+  - 검증
+    - `cd frontend && npm run build`: 성공
+    - `cd backend && npm run build`: 성공
+    - `cd frontend && npm run lint`: 성공
+    - 백엔드 PID `23364`, 4000번 실행 중
+    - `POST /api/auth/login`: `admin` / `00000000` 성공
+    - `/api/employee-certificate-inquiries?page=1&limit=100&isActive=true`: 성공, total 6
+    - `/api/employee-certificate-expiry-status?page=1&limit=100&isActive=true`: 성공, total 6
+- 사원별자격증등록 UX 정리 완료
+  - `frontend/src/features/operation/employee-certificates/components/EmployeeCertificatesManager.tsx`
+    - 선택 사원 패널에 사원코드, 부서, 직위, 재직/퇴사/미사용 상태 요약 추가
+    - 검색조건의 선택 사원 영역을 사원명/코드, 부서/직위, 상태 배지로 정리
+    - 보유 자격증 목록에 만료상태 배지 추가
+      - 미입력, 유효, D-n, 오늘 만료, n일 경과
+    - 상세 카드 제목을 `자격증 상세`로 정리
+    - 상세 상단에 대상 사원, 선택 자격증, 현재 입력된 만료상태 배지 표시
+    - 기존 사원별자격증 API 계약과 저장 흐름은 유지
+  - 검증
+    - `cd frontend && npm run build`: 성공
+    - `cd backend && npm run build`: 성공
+    - `cd frontend && npm run lint`: 성공
+    - 백엔드 PID `23364`, 4000번 실행 중
+    - `POST /api/auth/login`: `admin` / `00000000` 성공
+    - `/api/employees?page=1&limit=20&isActive=true`: 성공, total 2
+    - `/api/employee-certificates?page=1&limit=20`: 성공, total 6
+    - `/api/employee-certificate-expiry-status?page=1&limit=10&isActive=true`: 성공, total 6
+- 조직/직위 이력 관리 UI 2단계 완료
+  - `frontend/src/features/operation/employees/types/employee.types.ts`
+    - `EmployeeOrganizationHistoryForm` 타입 추가
+  - `frontend/src/features/operation/employees/api/employees.api.ts`
+    - `createEmployeeOrganizationHistory()` 추가
+  - `frontend/src/features/operation/employees/components/EmployeesManager.tsx`
+    - `사원 프로필 > 조직/직위` 이력 패널에 `이력 추가` 버튼 추가
+    - 사업단위, 부서, 직위, 적용일, 변경사유를 입력하는 인라인 폼 추가
+    - 등록 성공 시 현재 사원의 사업단위/부서/직위 스냅샷과 최근 이력 목록 갱신
+    - 사원 선택/신규/저장/삭제 시 이력 폼 상태 초기화
+  - 검증
+    - `cd frontend && npm run build`: 성공
+    - `cd frontend && npm run lint`: 성공
+    - 백엔드는 기존 PID `35428`, 4000번 실행 유지
 - 조직/직위 이력 테이블/API 1단계 완료
   - `backend/src/modules/employees/entities/employee-organization-history.entity.ts`
     - `employee_organization_histories` 신규 엔티티 추가
@@ -298,46 +459,49 @@
   - 세무/회계
   - 시스템
 - 첫 착수 모듈을 `인사/자격`으로 정함
-- 회사 전용 기능인 `배전인력`, `세금계산서변환`은 계속 `company-features`로 격리하는 방향 확정
+- 회사 전용 기능인 `배전인력`, `세금계산서변환`은 계속 `company-features`로 격리하되, 공통 ERP 후속 설계/개발 우선순위에서는 제외하기로 결정
 
 ## 4. 다음 작업
 
 다음 세션에서 바로 시작할 수 있는 작업 단위다.
 
-### 작업 K: 조직/직위 이력 관리 UI 2단계
+### 작업 N+3: 프로젝트/현장 2차 다음 작업
 
-권장 첫 작업:
+권장 다음 작업:
 
-- 현재는 최근 이력 5건 읽기 전용 표시까지 완료되어 있다.
-- 다음에는 사원 프로필에서 이력 추가/정정 UX를 만든다.
-- 조직/직위 변경 시 `effectiveFrom`, `changeReason`을 명시적으로 남길 수 있게 한다.
+- `프로젝트등록`, `현장정보관리`, `현장인력배치`는 1단계 CRUD가 완료됐다.
+- `세금계산서변환`, `배전인력`은 회사전용/특수 타겟이므로 이제 공통 ERP 후속 개발 대상에서 제외한다.
+- 다음은 공통 ERP 흐름으로 `계약관리`, `발주처/담당자관리`, `프로젝트 손익 기초` 중 하나를 선택한다.
+- 프로젝트/현장 데이터는 향후 공통 회계/매출/매입이 생길 때 `projects.id` 또는 `constructionNo`로 연결할 수 있게 유지한다.
 
-초기 구현 후보:
+다음 구현 후보:
 
-- `사원 프로필 > 조직/직위` 섹션에 `이력 추가` 버튼 추가
-- 현재 조직/직위 select와 별개로 이력 등록 폼 제공
-  - 사업단위
-  - 부서
-  - 직위
-  - 적용일
-  - 변경사유
-- 등록 성공 시 현재 `employees` 스냅샷과 이력 목록을 함께 갱신
-- 최근 5건 외 전체 이력을 볼 수 있는 하위 패널 또는 간단한 모달 검토
+- `계약관리`
+  - 프로젝트 선택
+  - 계약번호, 계약일, 계약금액, 계약기간, 계약상태
+  - 계약 문서/비고는 2단계로 보류
+- `발주처/담당자관리`
+  - 프로젝트 또는 거래처 기준 담당자 정보 관리
+  - 담당자명, 부서/직책, 연락처, 이메일
+- `프로젝트 손익 기초`
+  - 프로젝트별 예상 매출/예상 원가의 최소 필드
+  - 실제 매출/매입 모듈이 생기기 전까지는 요약 수준만 유지
 
 구현 방향:
 
-- `POST /api/employees/:id/organization-histories`는 이미 구현되어 있으므로 프론트 폼부터 붙인다.
-- 자동 이력 생성 로직과 수동 이력 등록 UX가 중복으로 혼란스럽지 않게 안내 문구 대신 조용한 UI 상태로 구분한다.
-- 배전인력/자격증/조직도는 계속 `employees` 최신 스냅샷을 참조한다.
+- `프로젝트등록` 1단계 CRUD는 완료 상태로 유지한다.
+- `현장정보관리` 1단계 CRUD는 완료 상태로 유지한다.
+- `현장인력배치` 1단계 CRUD는 완료 상태로 유지한다.
+- 기존 `/operation/...` 라우트는 당장 유지한다.
+- `배전인력`, `세금계산서변환` 코드는 회사전용 폴더에 유지하되, 당분간 신규 연계/고도화 작업은 하지 않는다.
+- 자격증 관련 추가 고도화는 현장 배치 요구사항이 다시 나오기 전까지 진행하지 않는다.
 
 검증:
 
 - `cd backend && npm run build`
 - `cd frontend && npm run build`
 - `cd frontend && npm run lint`
-- `admin` 로그인 후 사원 프로필에서 이력 추가
-- 추가 후 사원 상세의 사업단위/부서/직위 값과 최근 이력 current 상태 확인
-- 조직도 사원 목록과 배전인력 조회 영향 확인
+- `admin` 로그인 후 신규 API, 메뉴 권한, 기존 프로젝트등록/현장정보관리/현장인력배치 영향 확인
 
 ## 5. 미결정 사항
 
@@ -354,7 +518,11 @@
 | 사원 개인정보 표시 정책 | 목록 비노출, 상세 기본 마스킹, 엑셀 안내 추가 | 완료 |
 | 사원 프로필 섹션화 | 기본정보/조직·직위/연락처·개인정보/재직정보 섹션 분리 | 완료 |
 | 사원 조직·직위 이력 분리 | `employees`는 최신 스냅샷, 이력은 별도 테이블 | 완료 |
-| 조직·직위 이력 관리 UI | 이력 추가/적용일/변경사유 입력 | 다음 작업 |
+| 조직·직위 이력 관리 UI | 이력 추가/적용일/변경사유 입력 | 완료 |
+| 사원별자격증등록 UX | 선택 사원 요약, 만료 상태, 상세 입력 흐름 정리 | 완료 |
+| 사원자격증조회/자격만료현황 UX | 결과 요약, 만료상태 배지, 스캔성 개선 | 완료 |
+| 자격증종류등록 개선 | 자격증은 보조 기능으로 유지, 추가 고도화 보류 | 보류 |
+| 프로젝트/현장 모듈 | 프로젝트등록/현장정보관리/현장인력배치 1단계 CRUD 완료, 다음 계약관리/발주처관리 | 진행 중 |
 | 자격만료현황 API 분리 | 별도 메뉴 코드/엔드포인트 사용 | 완료 |
 | 인사현황 API 분리 | 별도 메뉴 코드/엔드포인트 사용 | 완료 |
 

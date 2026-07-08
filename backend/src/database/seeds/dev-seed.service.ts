@@ -217,6 +217,8 @@ export class DevSeedService implements OnApplicationBootstrap {
       { targetType: 'DEPARTMENT', prefix: 'DEPT', example: 'DEPT-000001' },
       { targetType: 'POSITION', prefix: 'POS', example: 'POS-000001' },
       { targetType: 'CERTIFICATE_TYPE', prefix: 'CERT', example: 'CERT-000001' },
+      { targetType: 'PROJECT', prefix: 'PRJ', example: 'PRJ-000001' },
+      { targetType: 'PROJECT_SITE', prefix: 'SITE', example: 'SITE-000001' },
       { targetType: 'CLIENT', prefix: 'CUST', example: 'CUST-000001' },
       { targetType: 'ITEM', prefix: 'ITEM', example: 'ITEM-000001' },
       { targetType: 'EMPLOYEE', prefix: 'EMP', example: 'EMP-000001' },

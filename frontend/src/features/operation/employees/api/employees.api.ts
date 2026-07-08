@@ -6,6 +6,7 @@ import type {
   EmployeeForm,
   EmployeeImportResult,
   EmployeeOrganizationHistory,
+  EmployeeOrganizationHistoryForm,
   EmployeeQuery,
 } from "../types/employee.types";
 
@@ -36,6 +37,16 @@ function toPayload(form: EmployeeForm) {
     hireDate: form.hireDate || null,
     resignDate: form.resignDate || null,
     isActive: form.isActive,
+  };
+}
+
+function toOrganizationHistoryPayload(form: EmployeeOrganizationHistoryForm) {
+  return {
+    businessUnitId: form.businessUnitId ? Number(form.businessUnitId) : null,
+    departmentId: form.departmentId ? Number(form.departmentId) : null,
+    positionId: form.positionId ? Number(form.positionId) : null,
+    effectiveFrom: form.effectiveFrom || null,
+    changeReason: form.changeReason || null,
   };
 }
 
@@ -79,6 +90,17 @@ export function deleteEmployee(id: number) {
 export function getEmployeeOrganizationHistories(employeeId: number) {
   return apiClient<EmployeeOrganizationHistory[]>(`${PATH}/${employeeId}/organization-histories`, {
     accessToken: authToken(),
+  });
+}
+
+export function createEmployeeOrganizationHistory(
+  employeeId: number,
+  form: EmployeeOrganizationHistoryForm,
+) {
+  return apiClient<EmployeeOrganizationHistory>(`${PATH}/${employeeId}/organization-histories`, {
+    method: "POST",
+    accessToken: authToken(),
+    body: JSON.stringify(toOrganizationHistoryPayload(form)),
   });
 }
 

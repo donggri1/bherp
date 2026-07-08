@@ -207,7 +207,87 @@ NEXT_PUBLIC_API_BASE_URL=/api
   - 부서별 사원 목록 API: `/api/organization-chart/departments/:id/employees`
   - 사원등록 연계: `/operation/employees?departmentId=:id`, `/operation/employees?employeeId=:id`
 
+### 프로젝트/현장
+
+현재 2차 개발 축입니다. 자격증은 보조 기능으로 유지하고, 프로젝트/현장 쪽을 ERP의 다음 업무 중심으로 확장합니다.
+
+- `projects`
+  - 메뉴 코드: `OP_PROJECTS`
+  - 화면: `/operation/projects`
+  - API: `/api/projects`
+  - 프로젝트 코드 자동 생성: `PRJ-000001` 형식
+  - 관리 항목:
+    - 프로젝트코드
+    - 공사번호
+    - 프로젝트명
+    - 발주처
+    - 현장주소
+    - 시작일/종료일
+    - 상태: 예정, 진행, 완료, 보류, 취소
+    - 메모
+    - 사용여부
+  - 다음 연결 후보:
+    - 현장정보관리
+    - 현장인력배치
+    - 계약관리
+    - 발주처/담당자관리
+    - 프로젝트별 매출/매입 조회
+- `project-sites`
+  - 메뉴 코드: `OP_PROJECT_SITES`
+  - 화면: `/operation/project-sites`
+  - API: `/api/project-sites`
+  - 현장 코드 자동 생성: `SITE-000001` 형식
+  - 프로젝트와 현장은 1:N 구조
+  - 관리 항목:
+    - 프로젝트
+    - 현장코드
+    - 현장명
+    - 현장주소
+    - 담당자
+    - 연락처
+    - 시작일/종료일
+    - 상태: 예정, 진행, 완료, 보류, 취소
+    - 메모
+    - 사용여부
+  - 다음 연결 후보:
+    - 현장인력배치
+    - 프로젝트별 현장 투입 현황
+- `project-assignments`
+  - 메뉴 코드: `OP_PROJECT_ASSIGNMENTS`
+  - 화면: `/operation/project-assignments`
+  - API: `/api/project-assignments`
+  - 프로젝트는 필수, 현장은 선택
+  - 현장을 선택하면 해당 현장이 프로젝트에 속하는지 백엔드에서 검증
+  - 관리 항목:
+    - 프로젝트
+    - 현장
+    - 사원
+    - 역할
+    - 시작일/종료일
+    - 배치상태: 예정, 투입, 완료, 취소
+    - 메모
+    - 사용여부
+  - 다음 연결 후보:
+    - 프로젝트/현장별 투입 인원 현황
+    - 자격증 보유 여부를 현장 투입 판단의 보조 정보로 표시
+
+### 회사전용 기능
+
+현재 결정:
+
+- `배전인력`, `세금계산서변환`은 특정 회사/특수 업무 타겟이다.
+- 기존 코드는 `company-features`에 유지하되, 공통 ERP 설계와 후속 개발 우선순위에서는 제외한다.
+- 새 프로젝트/현장 모듈은 이 회사전용 기능과의 연계를 목표로 잡지 않는다.
+- 향후 명시 요청이 있을 때만 해당 계획서와 코드를 다시 확인한다.
+
 ### 자격증
+
+현재 결정:
+
+- 자격증은 더 이상 핵심 개발 축이 아니다.
+- 인사/현장 인력관리 보조 기능으로 현재 수준을 유지한다.
+- 자격증종류등록 고도화, 추가 관리기준 필드, 실적시간 기준 공통화는 당분간 보류한다.
+- 다음 신규 개발 우선순위는 프로젝트/현장 모듈이다.
 
 - `certificate-types`
   - 자격증 종류 등록
@@ -242,6 +322,9 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - `/operation/hr-dashboard`: 인사현황
 - `/operation/employees`: 사원등록
 - `/operation/organization-chart`: 부서조직도
+- `/operation/projects`: 프로젝트등록
+- `/operation/project-sites`: 현장정보관리
+- `/operation/project-assignments`: 현장인력배치
 - `/operation/certificate-types`: 자격증종류등록
 - `/operation/employee-certificates`: 사원별자격증등록
 - `/operation/employee-certificate-inquiry`: 사원자격증조회
@@ -271,7 +354,9 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - 사원 생성 시 현재 조직/직위 이력이 자동 생성된다.
 - 사원 수정 시 사업단위/부서/직위가 바뀌면 기존 current 이력이 종료되고 새 current 이력이 생성된다.
 - 기존 사원은 `organization-history-backfill` API로 현재 소속/직위를 이력 원장에 백필한다.
-- 조직도, 배전인력, 자격증 조회는 계속 `employees`의 최신 스냅샷 이름/ID를 기준으로 표시한다.
+- `사원 프로필 > 조직/직위` 섹션에서 최근 이력 5건을 조회하고, 이력 추가 폼으로 적용일/변경사유를 입력할 수 있다.
+- 이력 추가 성공 시 `employees` 최신 스냅샷과 이력 목록이 함께 갱신된다.
+- 조직도, 현장인력배치, 자격증 조회는 계속 `employees`의 최신 스냅샷 이름/ID를 기준으로 표시한다.
 
 ## 자동채번
 
@@ -281,6 +366,8 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - 직위: `POS-000001`
 - 사원: `EMP-000001`
 - 자격증 종류: `CERT-000001`
+- 프로젝트: `PRJ-000001`
+- 현장: `SITE-000001`
 
 신규 기준정보에서 코드 자동생성이 필요하면 `SequencesService.issue(companyId, targetType)` 패턴을 따릅니다.
 
@@ -303,6 +390,11 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - `employee_organization_histories.positionId` -> `positions.id`
 - `employee_certificates.employeeId` -> `employees.id`
 - `employee_certificates.certificateTypeId` -> `certificate_types.id`
+- `projects.companyId` -> `companies.id`
+- `project_sites.projectId` -> `projects.id`
+- `project_assignments.projectId` -> `projects.id`
+- `project_assignments.projectSiteId` -> `project_sites.id`
+- `project_assignments.employeeId` -> `employees.id`
 - `distribution_workforce_certificates.employeeId` -> `employees.id`
 - `distribution_workforce_certificates.employeeCertificateId` -> `employee_certificates.id`
 - `user_roles.userId` -> `users.id`
@@ -363,6 +455,14 @@ NEXT_PUBLIC_API_BASE_URL=/api
 
 - 왼쪽에서 사원명/사원코드로 사원 검색
 - 사원을 선택하면 오른쪽에서 해당 사원 자격증만 조회
+- 선택 사원 패널에 사원코드, 부서, 직위, 재직/퇴사/미사용 상태를 표시
+- 보유 자격증 목록에 만료상태 배지 표시
+  - 미입력
+  - 유효
+  - D-n
+  - 오늘 만료
+  - n일 경과
+- 상세 상단에 대상 사원, 선택 자격증, 현재 입력된 만료상태 표시
 - 신규 등록 시 선택 사원이 자동 지정
 - 입력 항목:
   - 자격증 종류
@@ -392,6 +492,9 @@ NEXT_PUBLIC_API_BASE_URL=/api
 - 만료일
 - 만료상태
 - 사용여부
+- 결과 상단에 조회결과, 만료, 임박, 유효, 미입력 요약 표시
+- 조회 기준 요약 표시
+- 만료상태는 미입력, 유효, D-n, 오늘 만료, n일 경과 배지로 표시
 
 ### 자격만료현황
 
@@ -402,6 +505,7 @@ NEXT_PUBLIC_API_BASE_URL=/api
   - 만료일 종료: 오늘부터 30일 뒤
   - 사용여부: 사용
 - 사원자격증조회 화면 컴포넌트를 `expiry-status` 모드로 재사용한다.
+- 자격만료현황 모드에서는 만료/임박 행을 배경으로 강조한다.
 
 ## 알림 기능
 
